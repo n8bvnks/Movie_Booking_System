@@ -12,13 +12,20 @@ public class MovieController {
 
     private final MovieCatalogue catalogue;
 
+    //constructor takes catalogue variable
     public MovieController(MovieCatalogue catalogue) {
         this.catalogue = catalogue;
     }
 
-    // movie controller: get movie name, call catalogue, return whatever comes back
+    //get map the title
     @GetMapping("/{title}")
+    //take title using pathvariable
+
+    //get movie will return in the shape of movie response
     public MovieResponse getMovie(@PathVariable String title) {
+        
+        //call findbytitle in movie catalogue
+        //will return the movie name if exists, or return a movie not found exception
         return catalogue.findByTitle(title);
     }
 }

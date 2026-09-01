@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class MovieErrorHandler {
  
-    // catches MovieNotFoundException, turns it into a 404 + ApiError JSON body
+    // automatically gets called if MovieNotFoundException is called, turns it into a 404 + ApiError JSON body
     @ExceptionHandler(MovieNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(
             MovieNotFoundException exception,
@@ -17,7 +17,7 @@ public class MovieErrorHandler {
  
         ApiError error = new ApiError(
                 "MOVIE_NOT_FOUND",
-                exception.getMessage(),
+                exception.getMessage(), //message from messagenotfoundexception file
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);

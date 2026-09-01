@@ -1,6 +1,6 @@
 package nz.ac.ara.comp713.movie_service.api;
 
-// the shape of a movie sent out over HTTP
+// the shape of a movie, called in controller
 
 public record MovieResponse(
         String title,

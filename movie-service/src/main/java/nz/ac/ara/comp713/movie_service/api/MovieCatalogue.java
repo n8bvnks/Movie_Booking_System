@@ -23,8 +23,10 @@ public class MovieCatalogue {
                     "Greed and class discrimination threaten the newly formed symbiotic relationship between two families.")
     );
 
+    //given title from controller
     public MovieResponse findByTitle(String rawTitle) {
         String title = rawTitle.trim();
+        //movie response variable.get title from movies map
         MovieResponse movie = movies.get(title);
         if (movie == null) {
             throw new MovieNotFoundException(rawTitle);
