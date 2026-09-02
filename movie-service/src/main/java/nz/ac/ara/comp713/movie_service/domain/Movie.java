@@ -58,4 +58,9 @@ public class Movie {
     public int getSeats() {
         return seats;
     }
+
+    // called only by MovieCatalogue, never from outside this class
+    public void decrementSeats(int amount) {
+        this.seats -= amount;
+    }
 }

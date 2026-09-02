@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,5 +35,17 @@ public class MovieController {
         //call checkBooking in movie catalogue
         //will return the showing if it exists, or throw a movie not found exception
         return catalogue.checkBooking(title, date, time);
+    }
+
+    // PATCH /api/v1/movies/seats?title=...&date=...&time=...&seats=...
+    // called by booking-service AFTER a booking is saved
+    @PatchMapping("/seats")
+    public MovieResponse decrementSeats(
+            @RequestParam String title,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam String time,
+            @RequestParam int seats) {
+
+        return catalogue.decrementSeats(title, date, time, seats);
     }
 }
