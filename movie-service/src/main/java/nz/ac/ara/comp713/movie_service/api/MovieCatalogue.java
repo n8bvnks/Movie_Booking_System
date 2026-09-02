@@ -2,35 +2,31 @@ package nz.ac.ara.comp713.movie_service.api;
 
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import nz.ac.ara.comp713.movie_service.domain.Movie;
+import nz.ac.ara.comp713.movie_service.repository.MovieRepository;
+
+import java.time.LocalDate;
 
 @Service
 public class MovieCatalogue {
 
-    // hardcoded movie data for now, no database connected yet
-    private final Map<String, MovieResponse> movies = Map.of(
-            "Inception", new MovieResponse(
-                    "Inception", 148, "8am", "Sci-Fi",
-                    "A thief who steals corporate secrets through dream-sharing technology."),
-            "Dune", new MovieResponse(
-                    "Dune", 155, "10am", "Sci-Fi",
-                    "A noble family becomes embroiled in a war for control over a desert planet."),
-            "The Grand Budapest Hotel", new MovieResponse(
-                    "The Grand Budapest Hotel", 99, "8am", "Comedy",
-                    "The adventures of a legendary concierge and his protege at a famous European hotel."),
-            "Parasite", new MovieResponse(
-                    "Parasite", 132, "10am", "Thriller",
-                    "Greed and class discrimination threaten the newly formed symbiotic relationship between two families.")
-    );
+    private final MovieRepository repository;
 
-    //given title from controller
-    public MovieResponse findByTitle(String rawTitle) {
-        String title = rawTitle.trim();
-        //movie response variable.get title from movies map
-        MovieResponse movie = movies.get(title);
-        if (movie == null) {
-            throw new MovieNotFoundException(rawTitle);
-        }
-        return movie;
+    public MovieCatalogue(MovieRepository repository) {
+        this.repository = repository;
+    }
+
+    // given movie title, date and time from the controller (originally
+    // sent by booking-service), check the database for a matching showing
+    public MovieResponse checkBooking(String movieTitle, LocalDate date, String time) {
+        Movie movie = repository.findByMovieTitleAndDateAndTime(movieTitle, date, time)
+                .orElseThrow(() -> new MovieNotFoundException(movieTitle, date.toString(), time));
+
+        return new MovieResponse(
+                movie.getMovieTitle(),
+                movie.getDate(),
+                movie.getTime(),
+                movie.getSeats()
+        );
     }
 }

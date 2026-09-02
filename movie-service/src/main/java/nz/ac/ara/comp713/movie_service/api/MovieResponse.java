@@ -1,12 +1,14 @@
 package nz.ac.ara.comp713.movie_service.api;
 
-// the shape of a movie, called in controller
+// the shape of a movie response for booking service/controller
 
+import java.time.LocalDate;
+ 
 public record MovieResponse(
-        String title,
-        int runtime, // in minutes
-        String timeslot,
-        String genre,
-        String description
+        String movietitle,
+        LocalDate date,
+        String time,
+        int seats
 ) {
 }
+ 
