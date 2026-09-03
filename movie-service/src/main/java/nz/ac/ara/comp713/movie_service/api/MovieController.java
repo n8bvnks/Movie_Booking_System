@@ -1,6 +1,7 @@
 package nz.ac.ara.comp713.movie_service.api;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
@@ -17,28 +18,26 @@ public class MovieController {
 
     private final MovieCatalogue catalogue;
 
-    //constructor takes catalogue variable
     public MovieController(MovieCatalogue catalogue) {
         this.catalogue = catalogue;
     }
 
-    //get map the title
-    @GetMapping("/{title}")
-    //take title using pathvariable, date and time as query params from booking-service
+    // GET /api/v1/movies - every showing, used by the landing page
+    @GetMapping
+    public List<MovieResponse> listMovies() {
+        return catalogue.listAll();
+    }
 
-    //get movie will return in the shape of movie response
+    // GET /api/v1/movies/{title}?date=...&time=... - one specific showing
+    @GetMapping("/{title}")
     public MovieResponse getMovie(
             @PathVariable String title,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam String time) {
 
-        //call checkBooking in movie catalogue
-        //will return the showing if it exists, or throw a movie not found exception
         return catalogue.checkBooking(title, date, time);
     }
 
-    // PATCH /api/v1/movies/seats?title=...&date=...&time=...&seats=...
-    // called by booking-service AFTER a booking is saved
     @PatchMapping("/seats")
     public MovieResponse decrementSeats(
             @RequestParam String title,

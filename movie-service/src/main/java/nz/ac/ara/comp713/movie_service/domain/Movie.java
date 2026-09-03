@@ -22,6 +22,12 @@ public class Movie {
 
     private String movieTitle;
 
+    private String genre;
+
+    private String description;
+
+    private int runtime;
+
     private String time;
 
     private LocalDate date;
@@ -32,8 +38,12 @@ public class Movie {
         // required by JPA
     }
 
-    public Movie(String movieTitle, String time, LocalDate date, int seats) {
+    public Movie(String movieTitle, String genre, String description, int runtime,
+                 String time, LocalDate date, int seats) {
         this.movieTitle = movieTitle;
+        this.genre = genre;
+        this.description = description;
+        this.runtime = runtime;
         this.time = time;
         this.date = date;
         this.seats = seats;
@@ -45,6 +55,18 @@ public class Movie {
 
     public String getMovieTitle() {
         return movieTitle;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public int getRuntime() {
+        return runtime;
     }
 
     public String getTime() {
@@ -59,7 +81,6 @@ public class Movie {
         return seats;
     }
 
-    // called only by MovieCatalogue, never from outside this class
     public void decrementSeats(int amount) {
         this.seats -= amount;
     }
