@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Entity
 @Table(
     name = "MovieShowing",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"movieTitle", "date", "time"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"movie_title", "date", "time"})
 )
 public class Movie {
 
