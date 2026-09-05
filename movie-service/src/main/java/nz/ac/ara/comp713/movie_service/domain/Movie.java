@@ -1,6 +1,5 @@
 package nz.ac.ara.comp713.movie_service.domain;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,25 +20,18 @@ public class Movie {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idMovieShowing;
 
-    @Column (name = "movie_title", nullable = false, length = 40)
     private String movieTitle;
 
-    @Column (name = "movie_genre", nullable = false, length = 40)
     private String genre;
 
-    @Column (name = "movie_description", nullable = false, length = 40)
     private String description;
 
-    @Column (name = "movie_runtime_minutes", nullable = false, length = 40)
     private int runtime;
 
-    @Column (name = "movie_showing_time", nullable = false, length = 40)
     private String time;
 
-    @Column (name = "movie_showing_date", nullable = false, length = 40)
     private LocalDate date;
 
-    @Column (name = "movie_seats_availiable", nullable = false, length = 40)
     private int seats;
 
     protected Movie() {

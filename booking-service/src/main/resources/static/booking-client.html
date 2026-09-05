@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Book a Movie</title>
+</head>
+<body>
+    <h1>Book a Movie</h1>
+    <p><a href="index.html">Back to movies</a></p>
+
+    <form id="bookingForm">
+        <label for="name">Your name</label><br>
+        <input type="text" id="name" required><br><br>
+
+        <label for="movieTitle">Movie title</label><br>
+        <input type="text" id="movieTitle" required><br><br>
+
+        <label for="timeslot">Time (e.g. 8am)</label><br>
+        <input type="text" id="timeslot" required><br><br>
+
+        <label for="date">Date</label><br>
+        <input type="date" id="date" required><br><br>
+
+        <label for="seats">Number of seats</label><br>
+        <input type="number" id="seats" min="1" required><br><br>
+
+        <button type="submit">Book Now</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById("bookingForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "Booking...";
+
+            const booking = {
+                name: document.getElementById("name").value,
+                movieTitle: document.getElementById("movieTitle").value,
+                timeslot: document.getElementById("timeslot").value,
+                date: document.getElementById("date").value,
+                seats: Number(document.getElementById("seats").value)
+            };
+
+            try {
+                const response = await fetch("/api/v1/bookings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(booking)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p>Booking confirmed. Your booking ID is <strong>${data.bookingId}</strong>.</p>
+                        <p>Save this ID to check your booking later.</p>
+                    `;
+                } else {
+                    resultDiv.textContent = "Booking failed: " + data.message;
+                }
+            } catch (err) {
+                resultDiv.textContent = "Something went wrong sending your booking.";
+            }
+        });
+    </script>
+</body>
+</html>

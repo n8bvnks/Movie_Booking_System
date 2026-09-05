@@ -5,7 +5,7 @@ import nz.ac.ara.comp713.booking_service.api.dto.ApiError;
 import nz.ac.ara.comp713.booking_service.client.MovieNotFoundException;
 import nz.ac.ara.comp713.booking_service.client.MovieServiceUnavailableException;
 import nz.ac.ara.comp713.booking_service.client.NotEnoughSeatsException;
-import nz.ac.ara.comp713.booking_service.service.AlreadyFoundException;
+import nz.ac.ara.comp713.booking_service.service.AlreadyBookedException;
 import nz.ac.ara.comp713.booking_service.service.BookingNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,9 +38,9 @@ public class GlobalErrorHandler {
         return error(HttpStatus.NOT_FOUND, "BOOKING_NOT_FOUND", exception.getMessage(), request);
     }
 
-    @ExceptionHandler(AlreadyFoundException.class)
+    @ExceptionHandler(AlreadyBookedException.class)
     public ResponseEntity<ApiError> handleAlreadyFound(
-            AlreadyFoundException exception,
+            AlreadyBookedException exception,
             HttpServletRequest request) {
 
         return error(HttpStatus.CONFLICT, "ALREADY_BOOKED", exception.getMessage(), request);

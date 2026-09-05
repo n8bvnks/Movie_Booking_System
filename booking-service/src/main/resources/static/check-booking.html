@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Check My Booking</title>
+</head>
+<body>
+    <h1>Check My Booking</h1>
+    <p><a href="index.html">Back to movies</a></p>
+
+    <label for="bookingId">Booking ID</label>
+    <input type="number" id="bookingId" placeholder="e.g. 7">
+    <button id="checkButton">Check Booking</button>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById("checkButton").addEventListener("click", checkBooking);
+
+        async function checkBooking() {
+            const id = document.getElementById("bookingId").value;
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "Checking...";
+
+            try {
+                const response = await fetch(`/api/v1/bookings/${id}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p>${data.message}</p>
+                        <p>Name: ${data.name}</p>
+                        <p>Movie: ${data.movieTitle}</p>
+                        <p>Time: ${data.timeslot}</p>
+                        <p>Date: ${data.date}</p>
+                        <p>Seats: ${data.seats}</p>
+                    `;
+                } else {
+                    resultDiv.textContent = "Booking not found: " + data.message;
+                }
+            } catch (err) {
+                resultDiv.textContent = "Something went wrong checking your booking.";
+            }
+        }
+    </script>
+</body>
+</html>

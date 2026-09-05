@@ -19,7 +19,10 @@ public record BookingRequest(
         String timeslot,
 
         @NotNull
-        @FutureOrPresent
+        //date can be past date - though this is not practical in real life this uses seeded data 
+        //in the past before assignment is submitted
+
+        //Otherwise I would add @FutureOrPresent
         LocalDate date,
 
         @Positive

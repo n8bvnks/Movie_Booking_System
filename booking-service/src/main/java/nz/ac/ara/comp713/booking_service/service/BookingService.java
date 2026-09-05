@@ -34,7 +34,7 @@ public class BookingService {
         //if duplicate found throw already found exception
         if (repository.existsByNameAndMovieTitleAndTimeslotAndDate(
                 name, movieTitle, timeslot, request.date())) {
-            throw new AlreadyFoundException(name, movieTitle, timeslot, request.date());
+            throw new AlreadyBookedException(name, movieTitle, timeslot, request.date());
         }
 
         //if no duplicate booking, save booking in repository with unique booking
@@ -79,7 +79,7 @@ public class BookingService {
 +       " for movie " + booking.getMovieTitle()
 +       " at " + booking.getTimeslot()
 +       " on " + booking.getDate()
-+       " for " + booking.getSeats() + "people. Your booking id is " +
++       " for " + booking.getSeats() + " people. Your booking id is " +
         booking.getBookingId();
 
        

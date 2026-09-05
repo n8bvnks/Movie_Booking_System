@@ -6,6 +6,7 @@ import nz.ac.ara.comp713.movie_service.domain.Movie;
 import nz.ac.ara.comp713.movie_service.repository.MovieRepository;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -17,10 +18,11 @@ public class MovieCatalogue {
         this.repository = repository;
     }
 
-    // used by the landing page - every showing currently in the database
+    // used by the landing page - every showing currently in the database, ordered by date
     public List<MovieResponse> listAll() {
         return repository.findAll().stream()
                 .map(this::toResponse)
+                .sorted(Comparator.comparing(MovieResponse::date))
                 .toList();
     }
 

@@ -68,7 +68,10 @@ public class MovieClient {
                     .toBodilessEntity();
 
         } catch (HttpClientErrorException.Conflict ex) {
-            throw new NotEnoughSeatsException(movieTitle);
+
+            int available = checkAvailability(movieTitle, date, time).seats();
+
+            throw new NotEnoughSeatsException(movieTitle, seats, available);
 
         } catch (ResourceAccessException ex) {
             throw new MovieServiceUnavailableException();

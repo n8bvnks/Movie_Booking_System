@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Booking System</title>
+</head>
+<body>
+    <h1>Free Movie Theatre - Now Showing</h1>
+
+    <p>
+        <a href="booking-client.html"><button>Book a Movie</button></a>
+        <a href="check-booking.html"><button>Check My Booking</button></a>
+    </p>
+
+    <ul id="movies">Loading movies...</ul>
+
+    <script>
+        async function loadMovies() {
+            const moviesList = document.getElementById("movies");
+
+            try {
+                const response = await fetch("/api/v1/movies");
+                const movies = await response.json();
+
+                moviesList.innerHTML = "";
+
+                if (movies.length === 0) {
+                    moviesList.textContent = "No movies currently showing.";
+                    return;
+                }
+
+                for (const movie of movies) {
+                    const item = document.createElement("li");
+                    item.innerHTML =
+                        "<strong>" + movie.movieTitle + "</strong>" +
+                        " (" + movie.genre + ", " + movie.runtime + " min)<br>" +
+                        movie.description + "<br>" +
+                        "Showing: " + movie.date + " at " + movie.time +
+                        " — " + movie.seats + " seats left";
+                    moviesList.appendChild(item);
+                }
+
+            } catch (err) {
+                moviesList.textContent = "Could not load movies.";
+            }
+        }
+
+        loadMovies();
+    </script>
+</body>
+</html>

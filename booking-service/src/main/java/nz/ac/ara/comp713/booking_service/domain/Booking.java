@@ -1,6 +1,5 @@
 package nz.ac.ara.comp713.booking_service.domain;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,19 +20,14 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingId;
 
-    @Column (name = "customer_name", nullable = false, length = 40)
     private String name;
 
-    @Column (name = "movie_title", nullable = false, length = 40)
     private String movieTitle;
 
-    @Column (name = "movie_time", nullable = false, length = 40)
     private String timeslot;
 
-    @Column (name = "date_booked", nullable = false, length = 40)
     private LocalDate date;
 
-    @Column (name = "seats_booked", nullable = false, length = 40)
     private int seats;
 
     protected Booking() {
