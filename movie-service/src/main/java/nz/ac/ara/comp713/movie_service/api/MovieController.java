@@ -2,11 +2,10 @@ package nz.ac.ara.comp713.movie_service.api;
 
 import java.time.LocalDate;
 import java.util.List;
-
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -38,7 +37,7 @@ public class MovieController {
         return catalogue.checkBooking(title, date, time);
     }
 
-    @PatchMapping("/seats")
+    @PostMapping("/seats")
     public MovieResponse decrementSeats(
             @RequestParam String title,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,

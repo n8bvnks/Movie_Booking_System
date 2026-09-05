@@ -1,10 +1,8 @@
--- Seed data for the MovieShowing table
--- NOTE: table/column names below assume Spring Boot's default
--- camelCase-to-snake_case naming (MovieShowing -> movie_showing,
--- movieTitle -> movie_title). Verify with DESCRIBE MovieShowing;
--- before running this, and adjust the names below if they differ.
+--seed data for movie showing table
+--INDSERT IGNORE so it doesnt throw an exception as every time service runs it will try and
+--insert the same rows
 
-INSERT INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
+INSERT IGNORE INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
     ('Inception', 'Sci-Fi', 'A thief who steals corporate secrets through dream-sharing technology.', 148, '8am', '2026-09-03', 10),
     ('Inception', 'Sci-Fi', 'A thief who steals corporate secrets through dream-sharing technology.', 148, '10am', '2026-09-03', 10),
     ('Inception', 'Sci-Fi', 'A thief who steals corporate secrets through dream-sharing technology.', 148, '8am', '2026-09-04', 10),
@@ -46,7 +44,7 @@ INSERT INTO movie_showing (movie_title, genre, description, runtime, time, date,
     ('Inception', 'Sci-Fi', 'A thief who steals corporate secrets through dream-sharing technology.', 148, '8am', '2026-09-22', 10),
     ('Inception', 'Sci-Fi', 'A thief who steals corporate secrets through dream-sharing technology.', 148, '10am', '2026-09-22', 10);
 
-INSERT INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
+INSERT IGNORE INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
     ('Dune', 'Sci-Fi', 'A noble family becomes embroiled in a war for control over a desert planet.', 155, '8am', '2026-09-03', 10),
     ('Dune', 'Sci-Fi', 'A noble family becomes embroiled in a war for control over a desert planet.', 155, '10am', '2026-09-03', 10),
     ('Dune', 'Sci-Fi', 'A noble family becomes embroiled in a war for control over a desert planet.', 155, '8am', '2026-09-04', 10),
@@ -88,7 +86,7 @@ INSERT INTO movie_showing (movie_title, genre, description, runtime, time, date,
     ('Dune', 'Sci-Fi', 'A noble family becomes embroiled in a war for control over a desert planet.', 155, '8am', '2026-09-22', 10),
     ('Dune', 'Sci-Fi', 'A noble family becomes embroiled in a war for control over a desert planet.', 155, '10am', '2026-09-22', 10);
 
-INSERT INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
+INSERT IGNORE INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
     ('The Grand Budapest Hotel', 'Comedy', 'The adventures of a legendary concierge and his protege at a famous European hotel.', 99, '8am', '2026-09-03', 10),
     ('The Grand Budapest Hotel', 'Comedy', 'The adventures of a legendary concierge and his protege at a famous European hotel.', 99, '10am', '2026-09-03', 10),
     ('The Grand Budapest Hotel', 'Comedy', 'The adventures of a legendary concierge and his protege at a famous European hotel.', 99, '8am', '2026-09-04', 10),
@@ -130,7 +128,7 @@ INSERT INTO movie_showing (movie_title, genre, description, runtime, time, date,
     ('The Grand Budapest Hotel', 'Comedy', 'The adventures of a legendary concierge and his protege at a famous European hotel.', 99, '8am', '2026-09-22', 10),
     ('The Grand Budapest Hotel', 'Comedy', 'The adventures of a legendary concierge and his protege at a famous European hotel.', 99, '10am', '2026-09-22', 10);
 
-INSERT INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
+INSERT IGNORE INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
     ('Parasite', 'Thriller', 'Greed and class discrimination threaten a newly formed symbiotic relationship between two families.', 132, '8am', '2026-09-03', 10),
     ('Parasite', 'Thriller', 'Greed and class discrimination threaten a newly formed symbiotic relationship between two families.', 132, '10am', '2026-09-03', 10),
     ('Parasite', 'Thriller', 'Greed and class discrimination threaten a newly formed symbiotic relationship between two families.', 132, '8am', '2026-09-04', 10),
@@ -172,7 +170,7 @@ INSERT INTO movie_showing (movie_title, genre, description, runtime, time, date,
     ('Parasite', 'Thriller', 'Greed and class discrimination threaten a newly formed symbiotic relationship between two families.', 132, '8am', '2026-09-22', 10),
     ('Parasite', 'Thriller', 'Greed and class discrimination threaten a newly formed symbiotic relationship between two families.', 132, '10am', '2026-09-22', 10);
 
-INSERT INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
+INSERT IGNORE INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
     ('Whiplash', 'Drama', 'A young drummer enrolls at a cutthroat music conservatory under a demanding instructor.', 106, '8am', '2026-09-03', 10),
     ('Whiplash', 'Drama', 'A young drummer enrolls at a cutthroat music conservatory under a demanding instructor.', 106, '10am', '2026-09-03', 10),
     ('Whiplash', 'Drama', 'A young drummer enrolls at a cutthroat music conservatory under a demanding instructor.', 106, '8am', '2026-09-04', 10),
