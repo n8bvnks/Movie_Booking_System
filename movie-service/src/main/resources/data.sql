@@ -2,6 +2,9 @@
 --INDSERT IGNORE so it doesnt throw an exception as every time service runs it will try and
 --insert the same rows
 
+--There are 5 movies showing from the 9th of september to the 19th of september everyday, the
+--showtimes are onyl at 8am and 10am 
+
 INSERT IGNORE INTO movie_showing (movie_title, genre, description, runtime, time, date, seats) VALUES
     ('Inception', 'Sci-Fi', 'A thief who steals corporate secrets through dream-sharing technology.', 148, '8am', '2026-09-03', 10),
     ('Inception', 'Sci-Fi', 'A thief who steals corporate secrets through dream-sharing technology.', 148, '10am', '2026-09-03', 10),

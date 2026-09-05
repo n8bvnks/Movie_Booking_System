@@ -16,12 +16,12 @@ public class MovieClient {
 
     private final RestClient restClient;
 
-    // built directly rather than injecting RestClient.Builder as a bean -
-    // avoids depending on that auto-configuration being present
+
     public MovieClient(@Value("${movie.service.url}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 
+    //lists movies from get/api/v1/movies
     public List<MovieResponse> listMovies() {
         try {
             return restClient.get()
@@ -34,6 +34,7 @@ public class MovieClient {
         }
     }
 
+    //check availibility called by bookings service
     public MovieResponse checkAvailability(String movieTitle, LocalDate date, String time) {
         try {
             return restClient.get()

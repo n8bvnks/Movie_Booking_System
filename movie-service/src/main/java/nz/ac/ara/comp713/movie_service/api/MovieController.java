@@ -27,7 +27,7 @@ public class MovieController {
         return catalogue.listAll();
     }
 
-    // GET /api/v1/movies/{title}?date=...&time=... - one specific showing
+    // called by check availiability
     @GetMapping("/{title}")
     public MovieResponse getMovie(
             @PathVariable String title,

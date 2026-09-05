@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface MovieRepository extends JpaRepository<Movie, Long> {
 
+    //called by create booking in booking service to check if movie with that time and date exists
     Optional<Movie> findByMovieTitleAndDateAndTime(String movieTitle, LocalDate date, String time);
 }

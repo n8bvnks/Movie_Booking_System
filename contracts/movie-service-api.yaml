@@ -1,0 +1,297 @@
+openapi: 3.0.3
+info:
+  title: Movie Booking System API
+  version: 1.0.0
+  description: >-
+    Contract describing the public HTTP interface of the Movie Booking
+    System, split across two services: booking-service (the client's
+    front door) and movie-service (the movie/showing catalogue).
+servers:
+  - url: http://localhost:8082
+    description: Local booking service
+  - url: http://localhost:8083
+    description: Local movie service
+
+paths:
+  /api/v1/bookings:
+    post:
+      summary: Create a booking
+      operationId: createBooking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingRequest'
+            example:
+              name: Sam
+              movieTitle: Inception
+              timeslot: 8am
+              date: '2026-09-10'
+              seats: 2
+      responses:
+        '201':
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '400':
+          description: Request body failed validation, or is not valid JSON
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: The requested movie showing does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Duplicate booking, or not enough seats remaining
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: movie-service is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/bookings/{id}:
+    get:
+      summary: Check an existing booking
+      operationId: getBooking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Booking found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmBooking'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/movies:
+    get:
+      summary: List every movie showing
+      operationId: listMovies
+      description: >-
+        Exposed by both services: booking-service passes this call
+        through to movie-service, so the client only ever needs to
+        call booking-service directly.
+      responses:
+        '200':
+          description: A list of movie showings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MovieResponse'
+        '503':
+          description: movie-service is temporarily unavailable (booking-service only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/movies/{title}:
+    get:
+      summary: Check one specific showing
+      operationId: getMovie
+      servers:
+        - url: http://localhost:8083
+          description: Local movie service
+      parameters:
+        - name: title
+          in: path
+          required: true
+          schema:
+            type: string
+            example: Inception
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2026-09-10'
+        - name: time
+          in: query
+          required: true
+          schema:
+            type: string
+            example: 8am
+      responses:
+        '200':
+          description: Showing found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+        '404':
+          description: No showing found for this title/date/time combination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/movies/seats:
+    post:
+      summary: Decrement seats for a showing
+      operationId: decrementSeats
+      servers:
+        - url: http://localhost:8083
+          description: Local movie service
+      description: Called by booking-service after a booking is saved, not by the client.
+      parameters:
+        - name: title
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: time
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: seats
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Seats decremented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+        '404':
+          description: No showing found for this title/date/time combination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Not enough seats remaining
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+components:
+  schemas:
+    BookingRequest:
+      type: object
+      required: [name, movieTitle, timeslot, date, seats]
+      properties:
+        name:
+          type: string
+          example: Sam
+        movieTitle:
+          type: string
+          example: Inception
+        timeslot:
+          type: string
+          example: 8am
+        date:
+          type: string
+          format: date
+          example: '2026-09-10'
+        seats:
+          type: integer
+          example: 2
+
+    BookingResponse:
+      type: object
+      required: [bookingId, name, movieTitle, timeslot, date, seats]
+      properties:
+        bookingId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        movieTitle:
+          type: string
+        timeslot:
+          type: string
+        date:
+          type: string
+          format: date
+        seats:
+          type: integer
+
+    ConfirmBooking:
+      type: object
+      required: [message, name, movieTitle, timeslot, date, seats]
+      properties:
+        message:
+          type: string
+          example: Booking confirmed
+        name:
+          type: string
+        movieTitle:
+          type: string
+        timeslot:
+          type: string
+        date:
+          type: string
+          format: date
+        seats:
+          type: integer
+
+    MovieResponse:
+      type: object
+      required: [movieTitle, genre, description, runtime, date, time, seats]
+      properties:
+        movieTitle:
+          type: string
+        genre:
+          type: string
+        description:
+          type: string
+        runtime:
+          type: integer
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+        seats:
+          type: integer
+
+    ApiError:
+      type: object
+      required: [code, message, path]
+      properties:
+        code:
+          type: string
+          example: MOVIE_NOT_FOUND
+        message:
+          type: string
+          example: No showing found for Inception on 2026-09-10 at 8am
+        path:
+          type: string
+          example: /api/v1/bookings

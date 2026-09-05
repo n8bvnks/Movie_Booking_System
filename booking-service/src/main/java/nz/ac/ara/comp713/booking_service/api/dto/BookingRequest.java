@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDate;
 
+//format of a booking request from client
 public record BookingRequest(
         @NotBlank
         String name,

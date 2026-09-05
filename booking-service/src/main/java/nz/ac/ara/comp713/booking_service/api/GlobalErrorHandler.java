@@ -1,4 +1,4 @@
-package nz.ac.ara.comp713.booking_service.api.dto;
+package nz.ac.ara.comp713.booking_service.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import nz.ac.ara.comp713.booking_service.api.dto.ApiError;
@@ -70,10 +70,22 @@ public class GlobalErrorHandler {
         return error(HttpStatus.SERVICE_UNAVAILABLE, "MOVIE_SERVICE_UNAVAILABLE", exception.getMessage(), request);
     }
 
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleMalformedJson(
+            org.springframework.http.converter.HttpMessageNotReadableException exception,
+            HttpServletRequest request) {
+
+        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Request body is not valid JSON", request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(
             Exception exception,
             HttpServletRequest request) {
+
+        // TEMPORARY - prints the real cause to the console so we can see
+        // what's actually going wrong. Remove this line once diagnosed.
+        exception.printStackTrace();
 
         return error(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
                 "The request could not be completed", request);

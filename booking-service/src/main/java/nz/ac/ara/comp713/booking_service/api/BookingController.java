@@ -32,13 +32,14 @@ public class BookingController {
         this.movieClient = movieClient;
     }
 
-    // GET /api/v1/movies - pass-through, so the landing page only ever
-    // talks to booking-service, never directly to movie-service
+    // GET /api/v1/movies - landing page to display the availiable list of movies from movie client db
     @GetMapping("/movies")
     public List<MovieResponse> listMovies() {
         return movieClient.listMovies();
     }
 
+    //POST /api/v1/bookings, creates a booking response obj - send to booking service
+    //takes a booking request and sends to booking service
     @PostMapping("/bookings")
     public ResponseEntity<BookingResponse> create(@Valid @RequestBody BookingRequest request) {
         BookingResponse created = bookingService.createBooking(request);
@@ -52,6 +53,8 @@ public class BookingController {
         return ResponseEntity.created(location).body(created);
     }
 
+    //GET /api/v1/bookings/booking id - booking id page checks a customers booking when given a booking
+    //id number, returns a CONFIRMBOOKING response
     @GetMapping("/bookings/{id}")
     public ConfirmBooking getByBookingNumber(@PathVariable long id) {
         return bookingService.findByBookingNumber(id);
