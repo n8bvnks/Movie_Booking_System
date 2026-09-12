@@ -46,4 +46,6 @@ public class MovieController {
 
         return catalogue.decrementSeats(title, date, time, seats);
     }
+
+    
 }

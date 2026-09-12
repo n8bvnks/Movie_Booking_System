@@ -46,6 +46,8 @@ public class MovieCatalogue {
         return toResponse(repository.save(movie));
     }
 
+    
+
     //
     private Movie findOrThrow(String movieTitle, LocalDate date, String time) {
         return repository.findByMovieTitleAndDateAndTime(movieTitle, date, time)

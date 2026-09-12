@@ -84,4 +84,6 @@ public class Movie {
     public void decrementSeats(int amount) {
         this.seats -= amount;
     }
+
+    
 }

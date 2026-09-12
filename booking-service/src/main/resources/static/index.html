@@ -3,45 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <title>Movie Booking System</title>
+    <style>
+        .movie-block {
+            margin-bottom: 30px;
+        }
+        .movie-block img {
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            display: block;
+        }
+    </style>
 </head>
 <body>
-    <h1>Free Movie Theatre - Now Showing</h1>
+    <h1>Now Showing at Free Cinemas</h1>
 
     <p>
         <a href="booking-client.html"><button>Book a Movie</button></a>
         <a href="check-booking.html"><button>Check My Booking</button></a>
     </p>
 
-    <ul id="movies">Loading movies...</ul>
+    <div id="movies">Loading movies...</div>
 
     <script>
         async function loadMovies() {
-            const moviesList = document.getElementById("movies");
+            const moviesDiv = document.getElementById("movies");
 
             try {
                 const response = await fetch("/api/v1/movies");
-                const movies = await response.json();
+                const showings = await response.json();
 
-                moviesList.innerHTML = "";
-
-                if (movies.length === 0) {
-                    moviesList.textContent = "No movies currently showing.";
+                if (showings.length === 0) {
+                    moviesDiv.textContent = "No movies currently showing.";
                     return;
                 }
 
-                for (const movie of movies) {
-                    const item = document.createElement("li");
-                    item.innerHTML =
-                        "<strong>" + movie.movieTitle + "</strong>" +
-                        " (" + movie.genre + ", " + movie.runtime + " min)<br>" +
-                        movie.description + "<br>" +
-                        "Showing: " + movie.date + " at " + movie.time +
-                        " — " + movie.seats + " seats left";
-                    moviesList.appendChild(item);
+                const grouped = {};
+                for (const showing of showings) {
+                    if (!grouped[showing.movieTitle]) {
+                        grouped[showing.movieTitle] = {
+                            genre: showing.genre,
+                            description: showing.description,
+                            runtime: showing.runtime,
+                            times: []
+                        };
+                    }
+                    grouped[showing.movieTitle].times.push(showing);
+                }
+
+                moviesDiv.innerHTML = "";
+
+                 const posterUrls = {
+                    "Inception": "https://upload.wikimedia.org/wikipedia/en/2/2e/Inception_%282010%29_theatrical_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",
+                    "Dune": "https://thumb.wikimedia.org/wikipedia/en/thumb/8/8e/Dune_%282021_film%29.jpg/250px-Dune_%282021_film%29.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+                    "The Grand Budapest Hotel": "https://upload.wikimedia.org/wikipedia/en/1/1c/The_Grand_Budapest_Hotel.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",
+                    "Parasite": "https://thumb.wikimedia.org/wikipedia/en/thumb/5/53/Parasite_%282019_film%29.png/250px-Parasite_%282019_film%29.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+                    "Whiplash": "https://upload.wikimedia.org/wikipedia/en/0/01/Whiplash_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled"
+                };
+
+                for (const title in grouped) {
+                    const movie = grouped[title];
+
+                    // everything for one movie now lives inside its own
+                    // container, so it can't visually overlap the next movie
+                    const movieBlock = document.createElement("div");
+                    movieBlock.className = "movie-block";
+
+                    const poster = document.createElement("img");
+                    poster.src = posterUrls[title] || "https://placehold.co/120x160?text=" + encodeURIComponent(title);
+                    poster.alt = title;
+                    poster.style.cursor = "pointer";
+
+                    const titleButton = document.createElement("button");
+                    titleButton.textContent = title + " — click to view showtimes and details";
+
+                    const detailsDiv = document.createElement("div");
+                    detailsDiv.style.display = "none";
+
+                    let detailsHtml =
+                        "<p>" + movie.genre + " — " + movie.runtime + " min</p>" +
+                        "<p>" + movie.description + "</p>" +
+                        "<ul>";
+
+                    for (const time of movie.times) {
+                        detailsHtml += "<li>" + time.date + " at " + time.time +
+                            " — " + time.seats + " seats left</li>";
+                    }
+
+                    detailsHtml += "</ul>";
+                    detailsDiv.innerHTML = detailsHtml;
+
+                    function toggleDetails() {
+                        detailsDiv.style.display =
+                            detailsDiv.style.display === "none" ? "block" : "none";
+                    }
+
+                    poster.addEventListener("click", toggleDetails);
+                    titleButton.addEventListener("click", toggleDetails);
+
+                    movieBlock.appendChild(poster);
+                    movieBlock.appendChild(titleButton);
+                    movieBlock.appendChild(detailsDiv);
+
+                    moviesDiv.appendChild(movieBlock);
                 }
 
             } catch (err) {
-                moviesList.textContent = "Could not load movies.";
+                moviesDiv.textContent = "Could not load movies.";
             }
         }
 
