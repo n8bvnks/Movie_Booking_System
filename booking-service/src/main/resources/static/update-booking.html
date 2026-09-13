@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Booking</title>
+</head>
+<body>
+    <h1>Check, Update, or Delete a Booking</h1>
+    <p><a href="index.html">Back to movies</a></p>
+
+    <label for="bookingId">Booking ID</label>
+    <input type="number" id="bookingId" placeholder="e.g. 7">
+    <button id="checkButton">Check Booking</button>
+
+    <div id="result"></div>
+
+    <div id="furtherOptions" style="display: none;">
+        <p id="confirmationLine"></p>
+        <button id="showUpdateFormButton">Update Booking</button>
+        <button id="deleteButton">Delete Booking</button>
+    </div>
+
+    <div id="updateForm" style="display: none;">
+        <hr>
+        <h2>Update Booking</h2>
+        <label for="newName">New name (leave blank to keep the same)</label><br>
+        <input type="text" id="newName"><br><br>
+
+        <label for="seatsChange">Change in seats (e.g. 2 to add 2, -1 to remove 1, 0 for no change)</label><br>
+        <input type="number" id="seatsChange" value="0"><br><br>
+
+        <button id="submitUpdateButton">Submit Update</button>
+        <div id="updateResult"></div>
+    </div>
+
+    <div id="deleteResult"></div>
+
+    <script>
+
+        function formatDate(isoDate) {
+    const [year, month, day] = isoDate.split("-");
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+                         "July", "August", "September", "October", "November", "December"];
+    return parseInt(day) + " " + monthNames[parseInt(month) - 1];
+}
+
+
+        let currentBookingId = null;
+
+        document.getElementById("checkButton").addEventListener("click", checkBooking);
+        document.getElementById("showUpdateFormButton").addEventListener("click", function () {
+            document.getElementById("updateForm").style.display = "block";
+        });
+        document.getElementById("submitUpdateButton").addEventListener("click", submitUpdate);
+        document.getElementById("deleteButton").addEventListener("click", deleteBooking);
+
+        async function checkBooking() {
+            const id = document.getElementById("bookingId").value;
+            const resultDiv = document.getElementById("result");
+            const furtherOptionsDiv = document.getElementById("furtherOptions");
+            const updateFormDiv = document.getElementById("updateForm");
+
+            resultDiv.textContent = "Checking...";
+            furtherOptionsDiv.style.display = "none";
+            updateFormDiv.style.display = "none";
+
+            try {
+                const response = await fetch(`/api/v1/bookings/${id}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p>${data.message}</p>
+                        <p>Name: ${data.name}</p>
+                        <p>Movie: ${data.movieTitle}</p>
+                        <p>Time: ${data.timeslot}</p>
+                        <p>Date: ${formatDate(data.date)}</p>
+                        <p>Seats: ${data.seats}</p>
+                    `;
+
+                    currentBookingId = id;
+
+                    document.getElementById("confirmationLine").textContent =
+                        "Your booking is confirmed for " + data.movieTitle +
+                        " on " + data.date + " at " + data.timeslot + ".";
+
+                    furtherOptionsDiv.style.display = "block";
+                } else {
+                    resultDiv.textContent = "Booking not found: " + data.message;
+                }
+            } catch (err) {
+                resultDiv.textContent = "Something went wrong checking your booking.";
+            }
+        }
+
+        async function submitUpdate() {
+            const newName = document.getElementById("newName").value;
+            const seatsChange = Number(document.getElementById("seatsChange").value);
+            const updateResultDiv = document.getElementById("updateResult");
+            updateResultDiv.textContent = "Updating...";
+
+            const body = {
+                name: newName || null,
+                seatsChange: seatsChange || 0
+            };
+
+            try {
+                const response = await fetch(`/api/v1/bookings/${currentBookingId}/update`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    updateResultDiv.innerHTML = `
+                        <p>Booking updated.</p>
+                        <p>Name: ${data.name}</p>
+                        <p>Seats: ${data.seats}</p>
+                    `;
+                } else {
+                    updateResultDiv.textContent = "Update failed: " + data.message;
+                }
+            } catch (err) {
+                updateResultDiv.textContent = "Something went wrong updating your booking.";
+            }
+        }
+
+        async function deleteBooking() {
+            const deleteResultDiv = document.getElementById("deleteResult");
+            deleteResultDiv.textContent = "Deleting...";
+
+            try {
+                const response = await fetch(`/api/v1/bookings/${currentBookingId}/delete`, {
+                    method: "POST"
+                });
+
+                if (response.ok) {
+                    deleteResultDiv.textContent = "Booking deleted. Seats have been released.";
+                    document.getElementById("furtherOptions").style.display = "none";
+                    document.getElementById("updateForm").style.display = "none";
+                } else {
+                    const data = await response.json();
+                    deleteResultDiv.textContent = "Delete failed: " + data.message;
+                }
+            } catch (err) {
+                deleteResultDiv.textContent = "Something went wrong deleting your booking.";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -26,7 +26,7 @@ public class MovieCatalogue {
                 .toList();
     }
 
-    //called by - check availibity, to movie client - movie controller to check a booking
+    //called by - check availability, to movie client - movie controller to check a booking
     //find in repository or throw MovieNotFoundException, method at bottom of file
     //returns movie response
     public MovieResponse checkBooking(String movieTitle, LocalDate date, String time) {
@@ -34,7 +34,7 @@ public class MovieCatalogue {
         return toResponse(movie);
     }
 
-    //called by bookng service if booking is valid, checks enough seats, if not throw not enough seats exception
+    //called by booking service if booking is valid, checks enough seats, if not throw not enough seats exception
     public MovieResponse decrementSeats(String movieTitle, LocalDate date, String time, int seatsRequested) {
         Movie movie = findOrThrow(movieTitle, date, time);
 
@@ -46,9 +46,14 @@ public class MovieCatalogue {
         return toResponse(repository.save(movie));
     }
 
-    
+    // called when a booking is cancelled/deleted, or its seat count reduced
+    // during an update - gives the seats back
+    public MovieResponse incrementSeats(String movieTitle, LocalDate date, String time, int seats) {
+        Movie movie = findOrThrow(movieTitle, date, time);
+        movie.incrementSeats(seats);
+        return toResponse(repository.save(movie));
+    }
 
-    //
     private Movie findOrThrow(String movieTitle, LocalDate date, String time) {
         return repository.findByMovieTitleAndDateAndTime(movieTitle, date, time)
                 .orElseThrow(() -> new MovieNotFoundException(movieTitle, date.toString(), time));

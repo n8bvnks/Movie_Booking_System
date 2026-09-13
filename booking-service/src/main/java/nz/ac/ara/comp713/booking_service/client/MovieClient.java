@@ -16,7 +16,6 @@ public class MovieClient {
 
     private final RestClient restClient;
 
-
     public MovieClient(@Value("${movie.service.url}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
@@ -34,7 +33,7 @@ public class MovieClient {
         }
     }
 
-    //check availibility called by bookings service
+    //check availability called by booking service
     public MovieResponse checkAvailability(String movieTitle, LocalDate date, String time) {
         try {
             return restClient.get()
@@ -78,5 +77,26 @@ public class MovieClient {
         }
     }
 
-    
+    // called when a booking is cancelled/deleted, or its seat count is
+    // reduced during an update - gives the seats back to movie-service
+    public void restoreSeats(String movieTitle, LocalDate date, String time, int seats) {
+        try {
+            restClient.post()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/v1/movies/seats/restore")
+                            .queryParam("title", movieTitle)
+                            .queryParam("date", date)
+                            .queryParam("time", time)
+                            .queryParam("seats", seats)
+                            .build())
+                    .retrieve()
+                    .toBodilessEntity();
+
+        } catch (HttpClientErrorException.NotFound ex) {
+            throw new MovieNotFoundException(movieTitle, date.toString(), time);
+
+        } catch (ResourceAccessException ex) {
+            throw new MovieServiceUnavailableException();
+        }
+    }
 }

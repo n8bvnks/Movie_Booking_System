@@ -27,7 +27,7 @@ public class MovieController {
         return catalogue.listAll();
     }
 
-    // called by check availiability
+    // called by check availability
     @GetMapping("/{title}")
     public MovieResponse getMovie(
             @PathVariable String title,
@@ -47,5 +47,15 @@ public class MovieController {
         return catalogue.decrementSeats(title, date, time, seats);
     }
 
-    
+    // called when booking-service cancels/deletes a booking, or reduces
+    // its seat count during an update - gives seats back
+    @PostMapping("/seats/restore")
+    public MovieResponse restoreSeats(
+            @RequestParam String title,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam String time,
+            @RequestParam int seats) {
+
+        return catalogue.incrementSeats(title, date, time, seats);
+    }
 }

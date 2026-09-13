@@ -85,5 +85,7 @@ public class Movie {
         this.seats -= amount;
     }
 
-    
+    public void incrementSeats(int amount) {
+        this.seats += amount;
+    }
 }

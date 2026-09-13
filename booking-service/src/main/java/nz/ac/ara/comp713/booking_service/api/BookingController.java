@@ -5,6 +5,7 @@ import nz.ac.ara.comp713.booking_service.api.dto.BookingRequest;
 import nz.ac.ara.comp713.booking_service.api.dto.BookingResponse;
 import nz.ac.ara.comp713.booking_service.api.dto.ConfirmBooking;
 import nz.ac.ara.comp713.booking_service.api.dto.MovieResponse;
+import nz.ac.ara.comp713.booking_service.api.dto.UpdateBookingRequest;
 import nz.ac.ara.comp713.booking_service.client.MovieClient;
 import nz.ac.ara.comp713.booking_service.service.BookingService;
 import org.springframework.http.MediaType;
@@ -32,7 +33,7 @@ public class BookingController {
         this.movieClient = movieClient;
     }
 
-    // GET /api/v1/movies - landing page to display the availiable list of movies from movie client db
+    // GET /api/v1/movies - landing page to display the available list of movies from movie client db
     @GetMapping("/movies")
     public List<MovieResponse> listMovies() {
         return movieClient.listMovies();
@@ -58,5 +59,18 @@ public class BookingController {
     @GetMapping("/bookings/{id}")
     public ConfirmBooking getByBookingNumber(@PathVariable long id) {
         return bookingService.findByBookingNumber(id);
+    }
+
+    // POST /api/v1/bookings/{id}/update - update name and/or seat count
+    @PostMapping("/bookings/{id}/update")
+    public BookingResponse update(@PathVariable long id, @RequestBody UpdateBookingRequest request) {
+        return bookingService.updateBooking(id, request);
+    }
+
+    // POST /api/v1/bookings/{id}/delete - delete a booking, restores seats
+    @PostMapping("/bookings/{id}/delete")
+    public ResponseEntity<Void> delete(@PathVariable long id) {
+        bookingService.deleteBooking(id);
+        return ResponseEntity.noContent().build();
     }
 }

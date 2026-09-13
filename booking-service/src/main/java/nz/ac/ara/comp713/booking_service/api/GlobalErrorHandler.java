@@ -7,6 +7,7 @@ import nz.ac.ara.comp713.booking_service.client.MovieServiceUnavailableException
 import nz.ac.ara.comp713.booking_service.client.NotEnoughSeatsException;
 import nz.ac.ara.comp713.booking_service.service.AlreadyBookedException;
 import nz.ac.ara.comp713.booking_service.service.BookingNotFoundException;
+import nz.ac.ara.comp713.booking_service.service.InvalidUpdateException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -39,7 +40,7 @@ public class GlobalErrorHandler {
     }
 
     @ExceptionHandler(AlreadyBookedException.class)
-    public ResponseEntity<ApiError> handleAlreadyFound(
+    public ResponseEntity<ApiError> handleAlreadyBooked(
             AlreadyBookedException exception,
             HttpServletRequest request) {
 
@@ -60,6 +61,14 @@ public class GlobalErrorHandler {
             HttpServletRequest request) {
 
         return error(HttpStatus.CONFLICT, "NOT_ENOUGH_SEATS", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(InvalidUpdateException.class)
+    public ResponseEntity<ApiError> handleInvalidUpdate(
+            InvalidUpdateException exception,
+            HttpServletRequest request) {
+
+        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", exception.getMessage(), request);
     }
 
     @ExceptionHandler(MovieServiceUnavailableException.class)
@@ -83,8 +92,6 @@ public class GlobalErrorHandler {
             Exception exception,
             HttpServletRequest request) {
 
-        // TEMPORARY - prints the real cause to the console so we can see
-        // what's actually going wrong. Remove this line once diagnosed.
         exception.printStackTrace();
 
         return error(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",

@@ -20,12 +20,21 @@
 
     <p>
         <a href="booking-client.html"><button>Book a Movie</button></a>
-        <a href="check-booking.html"><button>Check My Booking</button></a>
+        <a href="update-booking.html"><button>Update My Booking</button></a>
     </p>
 
     <div id="movies">Loading movies...</div>
 
     <script>
+
+        function formatDate(isoDate) {
+    const [year, month, day] = isoDate.split("-");
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+                         "July", "August", "September", "October", "November", "December"];
+    return parseInt(day) + " " + monthNames[parseInt(month) - 1];
+}
+
+
         async function loadMovies() {
             const moviesDiv = document.getElementById("movies");
 
@@ -86,8 +95,7 @@
                         "<ul>";
 
                     for (const time of movie.times) {
-                        detailsHtml += "<li>" + time.date + " at " + time.time +
-                            " — " + time.seats + " seats left</li>";
+                        detailsHtml += "<li>" + formatDate(time.date) + " at " + time.time + " — " + time.seats + " seats left</li>";
                     }
 
                     detailsHtml += "</ul>";

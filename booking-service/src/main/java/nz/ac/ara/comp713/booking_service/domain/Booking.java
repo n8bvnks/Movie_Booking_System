@@ -50,6 +50,10 @@ public class Booking {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getMovieTitle() {
         return movieTitle;
     }
@@ -64,5 +68,9 @@ public class Booking {
 
     public int getSeats() {
         return seats;
+    }
+
+    public void setSeats(int seats) {
+        this.seats = seats;
     }
 }
