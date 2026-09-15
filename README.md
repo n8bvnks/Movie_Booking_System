@@ -4,7 +4,8 @@ A distributed movie booking application built with Spring Boot, split into two i
 
 # Architecture
 
-- **movie-service** (port 8083) — owns movie data in a single `MovieShowing` table: title, genre, description, runtime, date, time, and remaining seats. One row represents one bookable showing.
+- **movie-service** (port 8083) — owns movie data in a single `MovieShowing` table: title, genre, description, runtime, date, time, and remaining seats. 
+
 - **booking-service** (port 8082) — owns booking data in a `Booking` table, and is the only service the client talks to directly. Before saving a booking, it calls movie-service to confirm the showing exists and has enough seats. After saving, it calls movie-service again to decrement the seat count. Updating or deleting a booking calls movie-service to adjusts seats.
 - The two services use separate databases.
 - The client is a set of plain HTML pages served as static resources from booking-service
@@ -18,12 +19,12 @@ A distributed movie booking application built with Spring Boot, split into two i
 
 ## Setup
 
-Both services need the database password supplied as an environment variable, set fresh in each terminal window before running: $env:DB_PASSWORD = "password"
+Both services need the database password, for each service in each terminal window before running: $env:DB_PASSWORD = "password"
 
 
 ## Running
 
-Start movie-service first:
+Start movie-service:
 
 ```
 cd movie-service
