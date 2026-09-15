@@ -88,7 +88,7 @@ public class BookingService {
             int newSeatCount = booking.getSeats() + change;
 
             if (newSeatCount < 1) {
-                throw new InvalidUpdateException("A booking must have at least 1 seat");
+                throw new InvalidUpdateException("The amount of seats you are reducing is less than you have booked for.");
             }
 
             if (change > 0) {

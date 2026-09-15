@@ -27,7 +27,7 @@ public class MovieController {
         return catalogue.listAll();
     }
 
-    // called by check availability
+    // checks the movie exists before saving booking, called by movie client before saving a booking
     @GetMapping("/{title}")
     public MovieResponse getMovie(
             @PathVariable String title,
@@ -37,6 +37,7 @@ public class MovieController {
         return catalogue.checkBooking(title, date, time);
     }
 
+    //decrement seats after a booking has been confirmed, called by movie client
     @PostMapping("/seats")
     public MovieResponse decrementSeats(
             @RequestParam String title,
