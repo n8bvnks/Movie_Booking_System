@@ -17,6 +17,10 @@ A distributed movie booking application built with Spring Boot, split into two i
 - MySQL (remote, via AWS RDS)
 - Plain HTML/JavaScript (no frontend framework)
 
+## GITHUB
+
+- See link for development process: https://github.com/n8bvnks/Movie_Booking_System
+
 ## Setup
 
 Both services need the database password, for each service in each terminal window before running: $env:DB_PASSWORD = "password"
