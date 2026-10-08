@@ -7,12 +7,15 @@ import nz.ac.ara.comp713.booking_service.api.dto.ConfirmBooking;
 import nz.ac.ara.comp713.booking_service.api.dto.MovieResponse;
 import nz.ac.ara.comp713.booking_service.api.dto.UpdateBookingRequest;
 import nz.ac.ara.comp713.booking_service.client.MovieClient;
+import nz.ac.ara.comp713.booking_service.security.AuthInterceptor;
+import nz.ac.ara.comp713.booking_service.security.AuthUser;
 import nz.ac.ara.comp713.booking_service.service.BookingService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,9 +44,12 @@ public class BookingController {
 
     //POST /api/v1/bookings, creates a booking response obj - send to booking service
     //takes a booking request and sends to booking service
+    //the user is the logged in person, the interceptor puts them on the request after checking the token
     @PostMapping("/bookings")
-    public ResponseEntity<BookingResponse> create(@Valid @RequestBody BookingRequest request) {
-        BookingResponse created = bookingService.createBooking(request);
+    public ResponseEntity<BookingResponse> create(
+            @Valid @RequestBody BookingRequest request,
+            @RequestAttribute(AuthInterceptor.USER_ATTRIBUTE) AuthUser user) {
+        BookingResponse created = bookingService.createBooking(request, user);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -56,21 +62,31 @@ public class BookingController {
 
     //GET /api/v1/bookings/booking id - booking id page checks a customers booking when given a booking
     //id number, returns a CONFIRMBOOKING response
+    //the user is passed on so the service can check the booking belongs to them
     @GetMapping("/bookings/{id}")
-    public ConfirmBooking getByBookingNumber(@PathVariable long id) {
-        return bookingService.findByBookingNumber(id);
+    public ConfirmBooking getByBookingNumber(
+            @PathVariable long id,
+            @RequestAttribute(AuthInterceptor.USER_ATTRIBUTE) AuthUser user) {
+        return bookingService.findByBookingNumber(id, user);
     }
 
     // POST /api/v1/bookings/{id}/update - update name and/or seat count
+    //only the owner of the booking or an admin can update it
     @PostMapping("/bookings/{id}/update")
-    public BookingResponse update(@PathVariable long id, @RequestBody UpdateBookingRequest request) {
-        return bookingService.updateBooking(id, request);
+    public BookingResponse update(
+            @PathVariable long id,
+            @RequestBody UpdateBookingRequest request,
+            @RequestAttribute(AuthInterceptor.USER_ATTRIBUTE) AuthUser user) {
+        return bookingService.updateBooking(id, request, user);
     }
 
     // POST /api/v1/bookings/{id}/delete - delete a booking, restores seats
+    //only the owner of the booking or an admin can delete it
     @PostMapping("/bookings/{id}/delete")
-    public ResponseEntity<Void> delete(@PathVariable long id) {
-        bookingService.deleteBooking(id);
+    public ResponseEntity<Void> delete(
+            @PathVariable long id,
+            @RequestAttribute(AuthInterceptor.USER_ATTRIBUTE) AuthUser user) {
+        bookingService.deleteBooking(id, user);
         return ResponseEntity.noContent().build();
     }
 }

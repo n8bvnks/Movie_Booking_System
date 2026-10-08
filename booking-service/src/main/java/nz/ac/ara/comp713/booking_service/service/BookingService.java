@@ -7,6 +7,9 @@ import nz.ac.ara.comp713.booking_service.api.dto.UpdateBookingRequest;
 import nz.ac.ara.comp713.booking_service.client.MovieClient;
 import nz.ac.ara.comp713.booking_service.domain.Booking;
 import nz.ac.ara.comp713.booking_service.repository.BookingRepository;
+import nz.ac.ara.comp713.booking_service.security.AuthUser;
+import nz.ac.ara.comp713.booking_service.security.ForbiddenException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +24,7 @@ public class BookingService {
         this.movieClient = movieClient;
     }
 
-        //called by GET /api/v1/admin/bookings in the admin controller
+    //called by GET /api/v1/admin/bookings in the admin controller
     //readOnly because it only reads from the database and changes nothing
     @Transactional(readOnly = true)
     public java.util.List<BookingResponse> listAll() {
@@ -29,26 +32,29 @@ public class BookingService {
         //turn each booking into a booking response so the admin sees the customer name, movie, time, date and seats
         return repository.findAll().stream().map(this::toResponse).toList();
     }
-    //called by POST /api/v1/bookings in controller,
+
+    //called by POST /api/v1/bookings in controller, the user is the logged in person
+    //the interceptor worked out from their token
     @Transactional
-    public BookingResponse createBooking(BookingRequest request) {
-        String name = request.name().trim();
+    public BookingResponse createBooking(BookingRequest request, AuthUser user) {
+        //the name now comes from the logged in user, not from the booking form
+        String name = user.username();
         String movieTitle = request.movieTitle().trim();
         String timeslot = request.timeslot().trim();
 
         //confirm the showing exists call movie client, either returns
         movieClient.checkAvailability(movieTitle, request.date(), timeslot);
 
-        //if the showing exists, check if there is the same booking for same name, title, date and time
+        //if the showing exists, check if this user already has the same booking for same title, date and time
         //if duplicate found throw already booked exception
-        if (repository.existsByNameAndMovieTitleAndTimeslotAndDate(
-                name, movieTitle, timeslot, request.date())) {
+        if (repository.existsByUserIdAndMovieTitleAndTimeslotAndDate(
+                user.id(), movieTitle, timeslot, request.date())) {
             throw new AlreadyBookedException(name, movieTitle, timeslot, request.date());
         }
 
-        //if no duplicate booking, save booking in repository with unique booking id
+        //if no duplicate booking, save booking with the user's id and a unique booking id
         Booking saved = repository.save(
-                new Booking(name, movieTitle, timeslot, request.date(), request.seats()));
+                new Booking(user.id(), name, movieTitle, timeslot, request.date(), request.seats()));
 
         //Once saved decrement seats in movie client repository, if seats available < than the amount of seats requested throw not enough seat
         //exception
@@ -61,9 +67,12 @@ public class BookingService {
     //checks repository, if not found throw booking not found exception
     //else return their name, movie, time, date and amount of seats booked for
     @Transactional(readOnly = true)
-    public ConfirmBooking findByBookingNumber(long bookingId) {
+    public ConfirmBooking findByBookingNumber(long bookingId, AuthUser user) {
         Booking booking = repository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
+
+        //customers can only see their own booking, admins can see any, otherwise throw forbidden exception
+        checkOwner(booking, user);
 
         String message = "Booking confirmed for " + booking.getName()
                 + " for movie " + booking.getMovieTitle()
@@ -83,9 +92,12 @@ public class BookingService {
 
     // updates a booking's name and/or seat count
     @Transactional
-    public BookingResponse updateBooking(long bookingId, UpdateBookingRequest request) {
+    public BookingResponse updateBooking(long bookingId, UpdateBookingRequest request, AuthUser user) {
         Booking booking = repository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
+
+        //customers can only update their own booking, admins can update any
+        checkOwner(booking, user);
 
         if (request.name() != null && !request.name().isBlank()) {
             booking.setName(request.name().trim());
@@ -118,14 +130,26 @@ public class BookingService {
 
     // deletes a booking, restores its seats to movie-service
     @Transactional
-    public void deleteBooking(long bookingId) {
+    public void deleteBooking(long bookingId, AuthUser user) {
         Booking booking = repository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
+
+        //customers can only delete their own booking, admins can delete any
+        checkOwner(booking, user);
 
         repository.deleteById(bookingId);
 
         movieClient.restoreSeats(
                 booking.getMovieTitle(), booking.getDate(), booking.getTimeslot(), booking.getSeats());
+    }
+
+    //used by find, update and delete to make sure the logged in person is allowed to touch this booking
+    //admins are allowed to touch any booking, customers only the ones with their own user id
+    //if not allowed throw forbidden exception, the error handler turns this into a 403
+    private void checkOwner(Booking booking, AuthUser user) {
+        if (!user.isAdmin() && !booking.getUserId().equals(user.id())) {
+            throw new ForbiddenException("You can only access your own bookings");
+        }
     }
 
     //used when booking is created or updated, to build the response
