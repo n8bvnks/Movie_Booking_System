@@ -1,5 +1,5 @@
 package nz.ac.ara.comp713.booking_service.api;
-
+import nz.ac.ara.comp713.booking_service.security.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import nz.ac.ara.comp713.booking_service.api.dto.ApiError;
 import nz.ac.ara.comp713.booking_service.client.MovieNotFoundException;
@@ -13,11 +13,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import nz.ac.ara.comp713.booking_service.security.ForbiddenException;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalErrorHandler {
+
+    @ExceptionHandler(ForbiddenException.class)
+public ResponseEntity<ApiError> handleForbidden(ForbiddenException exception, HttpServletRequest request) {
+    return error(HttpStatus.FORBIDDEN, "FORBIDDEN", exception.getMessage(), request);
+}
+
+    @ExceptionHandler(UnauthorizedException.class)
+public ResponseEntity<ApiError> handleUnauthorized(UnauthorizedException exception, HttpServletRequest request) {
+    return error(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", exception.getMessage(), request);
+}
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(
