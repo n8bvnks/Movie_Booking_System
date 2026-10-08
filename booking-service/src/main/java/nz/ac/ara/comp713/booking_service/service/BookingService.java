@@ -21,6 +21,14 @@ public class BookingService {
         this.movieClient = movieClient;
     }
 
+        //called by GET /api/v1/admin/bookings in the admin controller
+    //readOnly because it only reads from the database and changes nothing
+    @Transactional(readOnly = true)
+    public java.util.List<BookingResponse> listAll() {
+        //get every booking from the repository, no filter by user because only admins reach this
+        //turn each booking into a booking response so the admin sees the customer name, movie, time, date and seats
+        return repository.findAll().stream().map(this::toResponse).toList();
+    }
     //called by POST /api/v1/bookings in controller,
     @Transactional
     public BookingResponse createBooking(BookingRequest request) {
