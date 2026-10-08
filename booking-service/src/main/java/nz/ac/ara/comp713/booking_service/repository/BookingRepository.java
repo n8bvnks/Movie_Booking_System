@@ -8,8 +8,9 @@ import java.time.LocalDate;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     //called to confirm booking
-    //find the given variables in the database by name movie title, timeslot and Date
+    //find the given variables in the database by user id, movie title, timeslot and Date
     //variables seperated by Capitals, generates a sql query
-    boolean existsByNameAndMovieTitleAndTimeslotAndDate(
-            String name, String movieTitle, String timeslot, LocalDate date);
+    //checks by user id instead of name so two different users with the same name do not clash
+    boolean existsByUserIdAndMovieTitleAndTimeslotAndDate(
+            Long userId, String movieTitle, String timeslot, LocalDate date);
 }

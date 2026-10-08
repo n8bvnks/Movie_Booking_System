@@ -8,10 +8,8 @@ import jakarta.validation.constraints.Positive;
 import java.time.LocalDate;
 
 //format of a booking request from client
+//there is no name any more, the booking is made under the logged in user
 public record BookingRequest(
-        @NotBlank
-        String name,
-
         @NotBlank
         String movieTitle,
 

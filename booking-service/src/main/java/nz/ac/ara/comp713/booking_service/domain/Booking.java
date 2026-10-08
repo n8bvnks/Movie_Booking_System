@@ -1,5 +1,6 @@
 package nz.ac.ara.comp713.booking_service.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,13 +13,18 @@ import java.time.LocalDate;
 @Entity
 @Table(
     name = "bookings",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"name", "movie_title", "timeslot", "date"})
+    //a user can only have one booking for the same movie, time and date, it used to check the name instead
+    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "movie_title", "timeslot", "date"})
 )
 public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingId;
+
+    //the id of the user who made the booking, set from the login, used to check who owns the booking
+    @Column(nullable = false)
+    private Long userId;
 
     private String name;
 
@@ -34,7 +40,9 @@ public class Booking {
         // required by JPA
     }
 
-    public Booking(String name, String movieTitle, String timeslot, LocalDate date, int seats) {
+    //the user id comes first, it is the logged in user's id from the token
+    public Booking(Long userId, String name, String movieTitle, String timeslot, LocalDate date, int seats) {
+        this.userId = userId;
         this.name = name;
         this.movieTitle = movieTitle;
         this.timeslot = timeslot;
@@ -44,6 +52,11 @@ public class Booking {
 
     public Long getBookingId() {
         return bookingId;
+    }
+
+    //used by the owner check in the booking service
+    public Long getUserId() {
+        return userId;
     }
 
     public String getName() {
