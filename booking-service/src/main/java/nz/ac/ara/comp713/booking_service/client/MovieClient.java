@@ -1,8 +1,10 @@
 package nz.ac.ara.comp713.booking_service.client;
 
+import nz.ac.ara.comp713.booking_service.api.dto.CreateShowingRequest;
 import nz.ac.ara.comp713.booking_service.api.dto.MovieResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -95,6 +97,29 @@ public class MovieClient {
         } catch (HttpClientErrorException.NotFound ex) {
             throw new MovieNotFoundException(movieTitle, date.toString(), time);
 
+        } catch (ResourceAccessException ex) {
+            throw new MovieServiceUnavailableException();
+        }
+    }
+
+    // called by the admin endpoint to add a showing
+    // forwards the admin's request to POST /api/v1/movies on movie-service
+    // movie-service owns the showings, so booking-service never writes them itself
+    public MovieResponse createShowing(CreateShowingRequest request) {
+        try {
+            return restClient.post()
+                    .uri("/api/v1/movies")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .retrieve()
+                    .body(MovieResponse.class);
+
+        // 409 from movie-service = same title/date/time already listed
+        } catch (HttpClientErrorException.Conflict ex) {
+            throw new ShowingAlreadyExistsException(
+                    request.movieTitle(), request.date().toString(), request.time());
+
+        // movie-service is down or unreachable
         } catch (ResourceAccessException ex) {
             throw new MovieServiceUnavailableException();
         }
