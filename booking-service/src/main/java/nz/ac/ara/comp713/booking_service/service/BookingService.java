@@ -33,6 +33,21 @@ public class BookingService {
         return repository.findAll().stream().map(this::toResponse).toList();
     }
 
+        //called by GET /api/v1/admin/showings/bookings in the admin controller
+    //returns every booking made for one showing so the admin can see who is coming
+    @Transactional(readOnly = true)
+    public java.util.List<BookingResponse> listForShowing(String movieTitle, java.time.LocalDate date, String time) {
+        String title = movieTitle.trim();
+        String timeslot = time.trim();
+
+        //confirm the showing exists first, movie client throws movie not found (404) if it does not
+        //so an admin who mistypes a title gets an error instead of an empty list
+        movieClient.checkAvailability(title, date, timeslot);
+
+        //get the bookings for this title, time and date, turn each into a booking response
+        return repository.findByMovieTitleAndTimeslotAndDate(title, timeslot, date)
+                .stream().map(this::toResponse).toList();
+    }
     //called by POST /api/v1/bookings in controller, the user is the logged in person
     //the interceptor worked out from their token
     @Transactional
