@@ -1,12 +1,16 @@
 package nz.ac.ara.comp713.movie_service.api;
 
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +29,14 @@ public class MovieController {
     @GetMapping
     public List<MovieResponse> listMovies() {
         return catalogue.listAll();
+    }
+
+    // POST /api/v1/movies - adds a new showing, called by the booking service when an admin adds one
+    // returns 201 with the saved showing, 400 if a field is wrong, 409 if the showing already exists
+    @PostMapping
+    public ResponseEntity<MovieResponse> createShowing(@Valid @RequestBody CreateShowingRequest request) {
+        MovieResponse created = catalogue.createShowing(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // checks the movie exists before saving booking, called by movie client before saving a booking

@@ -5,9 +5,13 @@
     <title>Book a Movie</title>
 </head>
 <body>
+    <!-- who is logged in, with a log out button, filled in by showLoginBar() -->
+    <p id="loginBar"></p>
+
     <h1>Book a Movie</h1>
     <p><a href="index.html">Back to movies</a></p>
 
+    <!-- there is no name box any more, the booking is made under the logged in user -->
     <form id="bookingForm">
         
 
@@ -34,13 +38,18 @@
 
     <div id="result"></div>
 
+    <script src="auth.js"></script>
     <script>
+        // not logged in goes straight to the login page
+        requireLogin();
+        showLoginBar();
+
         let showingsData = [];
 
         // fetch every showing once, used to populate all three dropdowns
         async function loadMovieOptions() {
             try {
-                const response = await fetch("/api/v1/movies");
+                const response = await authFetch("/api/v1/movies");
                 showingsData = await response.json();
 
                 const movieSelect = document.getElementById("movieTitle");
@@ -113,8 +122,8 @@
             const resultDiv = document.getElementById("result");
             resultDiv.textContent = "Booking...";
 
+            // no name here, the server takes it from the logged in user
             const booking = {
-                
                 movieTitle: document.getElementById("movieTitle").value,
                 timeslot: document.getElementById("timeslot").value,
                 date: document.getElementById("date").value,
@@ -122,7 +131,7 @@
             };
 
             try {
-                const response = await fetch("/api/v1/bookings", {
+                const response = await authFetch("/api/v1/bookings", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(booking)

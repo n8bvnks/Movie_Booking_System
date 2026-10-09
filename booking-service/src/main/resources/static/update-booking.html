@@ -5,6 +5,9 @@
     <title>Update Booking</title>
 </head>
 <body>
+    <!-- who is logged in, with a log out button, filled in by showLoginBar() -->
+    <p id="loginBar"></p>
+
     <h1>Check, Update, or Delete a Booking</h1>
     <p><a href="index.html">Back to movies</a></p>
 
@@ -35,7 +38,12 @@
 
     <div id="deleteResult"></div>
 
+    <script src="auth.js"></script>
     <script>
+
+        // not logged in goes straight to the login page
+        requireLogin();
+        showLoginBar();
 
         function formatDate(isoDate) {
     const [year, month, day] = isoDate.split("-");
@@ -65,7 +73,8 @@
             updateFormDiv.style.display = "none";
 
             try {
-                const response = await fetch(`/api/v1/bookings/${id}`);
+                // authFetch adds the login token, the server only returns bookings that belong to this user
+                const response = await authFetch(`/api/v1/bookings/${id}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -86,7 +95,8 @@
 
                     furtherOptionsDiv.style.display = "block";
                 } else {
-                    resultDiv.textContent = "Booking not found: " + data.message;
+                    // covers booking not found (404) and someone else's booking (403)
+                    resultDiv.textContent = "Could not check booking: " + data.message;
                 }
             } catch (err) {
                 resultDiv.textContent = "Something went wrong checking your booking.";
@@ -105,7 +115,7 @@
             };
 
             try {
-                const response = await fetch(`/api/v1/bookings/${currentBookingId}/update`, {
+                const response = await authFetch(`/api/v1/bookings/${currentBookingId}/update`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(body)
@@ -132,7 +142,7 @@
             deleteResultDiv.textContent = "Deleting...";
 
             try {
-                const response = await fetch(`/api/v1/bookings/${currentBookingId}/delete`, {
+                const response = await authFetch(`/api/v1/bookings/${currentBookingId}/delete`, {
                     method: "POST"
                 });
 

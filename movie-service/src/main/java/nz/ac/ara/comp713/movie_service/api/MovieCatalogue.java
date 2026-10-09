@@ -26,6 +26,29 @@ public class MovieCatalogue {
                 .toList();
     }
 
+    //called by the admin through booking service when they add a new showing
+    //if the same movie, date and time is already in the database throw showing already exists exception
+    //otherwise save the new showing with the seats the admin chose, and return it
+    public MovieResponse createShowing(CreateShowingRequest request) {
+        String movieTitle = request.movieTitle().trim();
+        String time = request.time().trim();
+
+        if (repository.findByMovieTitleAndDateAndTime(movieTitle, request.date(), time).isPresent()) {
+            throw new ShowingAlreadyExistsException(movieTitle, request.date().toString(), time);
+        }
+
+        Movie saved = repository.save(new Movie(
+                movieTitle,
+                request.genre().trim(),
+                request.description().trim(),
+                request.runtime(),
+                time,
+                request.date(),
+                request.seats()));
+
+        return toResponse(saved);
+    }
+
     //called by - check availability, to movie client - movie controller to check a booking
     //find in repository or throw MovieNotFoundException, method at bottom of file
     //returns movie response

@@ -16,6 +16,9 @@
     </style>
 </head>
 <body>
+    <!-- who is logged in, with a log out button, filled in by showLoginBar() -->
+    <p id="loginBar"></p>
+
     <h1>Now Showing at Free Cinemas</h1>
 
     <p>
@@ -25,7 +28,12 @@
 
     <div id="movies">Loading movies...</div>
 
+    <script src="auth.js"></script>
     <script>
+
+        // not logged in goes straight to the login page
+        requireLogin();
+        showLoginBar();
 
         function formatDate(isoDate) {
     const [year, month, day] = isoDate.split("-");
@@ -39,7 +47,8 @@
             const moviesDiv = document.getElementById("movies");
 
             try {
-                const response = await fetch("/api/v1/movies");
+                // authFetch adds the login token to the request
+                const response = await authFetch("/api/v1/movies");
                 const showings = await response.json();
 
                 if (showings.length === 0) {

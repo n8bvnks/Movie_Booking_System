@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log in</title>
+</head>
+<body>
+    <h1>Free Cinemas - Log in</h1>
+
+    <form id="loginForm">
+        <label for="username">Username</label><br>
+        <input type="text" id="username" required><br><br>
+
+        <label for="password">Password</label><br>
+        <input type="password" id="password" required><br><br>
+
+        <button type="submit">Log in</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script src="auth.js"></script>
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "Logging in...";
+
+            const login = {
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value
+            };
+
+            try {
+                // plain fetch here, not authFetch, because the user has no token yet
+                const response = await fetch("/api/v1/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(login)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // keep the token, then go to the landing page
+                    // the admin page will get its own redirect once it is built
+                    saveLogin(data);
+                    window.location.href = "index.html";
+                } else {
+                    resultDiv.textContent = "Login failed: " + data.message;
+                }
+            } catch (err) {
+                resultDiv.textContent = "Something went wrong logging in.";
+            }
+        });
+    </script>
+</body>
+</html>
