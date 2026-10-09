@@ -9,8 +9,7 @@
     <p><a href="index.html">Back to movies</a></p>
 
     <form id="bookingForm">
-        <label for="name">Your name</label><br>
-        <input type="text" id="name" required><br><br>
+        
 
         <label for="movieTitle">Movie</label><br>
         <select id="movieTitle" required>
@@ -115,7 +114,7 @@
             resultDiv.textContent = "Booking...";
 
             const booking = {
-                name: document.getElementById("name").value,
+                
                 movieTitle: document.getElementById("movieTitle").value,
                 timeslot: document.getElementById("timeslot").value,
                 date: document.getElementById("date").value,
