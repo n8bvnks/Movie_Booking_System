@@ -21,4 +21,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     //the method name is turned into a sql query, same as the exists method above
     List<Booking> findByMovieTitleAndTimeslotAndDate(String movieTitle, String timeslot, LocalDate date);
 
+        //called by GET /api/v1/bookings/mine
+    //finds every booking with this user id, soonest date first
+    //the method name is turned into a sql query, same as the exists method above
+    List<Booking> findByUserIdOrderByDateAsc(Long userId);
 }
