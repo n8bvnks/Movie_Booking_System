@@ -60,6 +60,15 @@ public class BookingController {
         return ResponseEntity.created(location).body(created);
     }
 
+    //NEW - GET /api/v1/bookings/mine - the My Bookings page shows the logged in customer's own bookings
+    //returns a list of BOOKINGRESPONSE, only bookings with this user's id
+    //spring picks this fixed path before /bookings/{id}, so "mine" is not read as a booking number
+    @GetMapping("/bookings/mine")
+    public List<BookingResponse> myBookings(
+            @RequestAttribute(AuthInterceptor.USER_ATTRIBUTE) AuthUser user) {
+        return bookingService.listMine(user);
+    }
+
     //GET /api/v1/bookings/booking id - booking id page checks a customers booking when given a booking
     //id number, returns a CONFIRMBOOKING response
     //the user is passed on so the service can check the booking belongs to them

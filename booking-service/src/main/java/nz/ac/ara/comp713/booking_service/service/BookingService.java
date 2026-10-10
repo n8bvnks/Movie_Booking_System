@@ -33,6 +33,14 @@ public class BookingService {
         return repository.findAll().stream().map(this::toResponse).toList();
     }
 
+        //called by GET /api/v1/bookings/mine in the booking controller
+    //returns only the logged in user's own bookings, found by the user id from their token
+    @Transactional(readOnly = true)
+    public java.util.List<BookingResponse> listMine(AuthUser user) {
+        return repository.findByUserIdOrderByDateAsc(user.id())
+                .stream().map(this::toResponse).toList();
+    }
+    
         //called by GET /api/v1/admin/showings/bookings in the admin controller
     //returns every booking made for one showing so the admin can see who is coming
     @Transactional(readOnly = true)
