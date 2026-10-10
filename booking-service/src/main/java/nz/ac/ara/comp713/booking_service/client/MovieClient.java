@@ -102,7 +102,7 @@ public class MovieClient {
         }
     }
 
-    // called by the admin endpoint to add a showing
+    // new - called by the admin endpoint to add a showing
     // forwards the admin's request to POST /api/v1/movies on movie-service
     // movie-service owns the showings, so booking-service never writes them itself
     public MovieResponse createShowing(CreateShowingRequest request) {

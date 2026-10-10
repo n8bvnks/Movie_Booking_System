@@ -7,7 +7,9 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
-//format of a new showing sent by the admin, every field is checked before anything is saved
+//format of a new showing sent by the admin to POST /api/v1/admin/showings, every field is checked before anything is saved
+//validated here first so bad input is rejected before movie-service is called
+//movie-service validates again with the same rules, so keep the two CreateShowingRequest files the same
 //the sizes match the database columns, so a very long description gives a 400 instead of a database error
 public record CreateShowingRequest(
         @NotBlank @Size(max = 255)

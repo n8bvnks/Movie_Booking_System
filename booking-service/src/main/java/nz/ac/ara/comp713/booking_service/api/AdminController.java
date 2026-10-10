@@ -20,7 +20,7 @@ import java.util.List;
 public class AdminController {
 
     private final BookingService bookingService;
-    private final MovieClient movieClient; // used to add showings in movie-service
+    private final MovieClient movieClient; // NEW - used to add showings in movie-service
 
     public AdminController(BookingService bookingService, MovieClient movieClient) {
         this.bookingService = bookingService;
@@ -32,10 +32,10 @@ public class AdminController {
     @GetMapping("/bookings")
     public List<BookingResponse> allBookings() { return bookingService.listAll(); }
 
-    //POST /api/v1/admin/showings - admin lists a new showing
+    //NEW - POST /api/v1/admin/showings - admin lists a new showing
     //@Valid rejects bad input with 400 before anything is sent on
     //the request is forwarded to movie-service which saves it, 201 on success
-    //errors: 409 showing already exists, 503 movie-service down
+    //errors = 409 showing already exists and 503 movie-service down
     @PostMapping(path = "/showings", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public MovieResponse addShowing(@Valid @RequestBody CreateShowingRequest request) {
