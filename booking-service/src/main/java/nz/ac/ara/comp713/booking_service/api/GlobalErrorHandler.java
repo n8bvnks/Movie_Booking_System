@@ -14,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import nz.ac.ara.comp713.booking_service.security.ForbiddenException;
+import nz.ac.ara.comp713.booking_service.client.ShowingAlreadyExistsException;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -65,6 +66,14 @@ public ResponseEntity<ApiError> handleUnauthorized(UnauthorizedException excepti
         return error(HttpStatus.NOT_FOUND, "MOVIE_NOT_FOUND", exception.getMessage(), request);
     }
 
+        //admin tried to add a showing that is already listed
+    @ExceptionHandler(ShowingAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleShowingExists(
+            ShowingAlreadyExistsException exception,
+            HttpServletRequest request) {
+
+        return error(HttpStatus.CONFLICT, "SHOWING_ALREADY_EXISTS", exception.getMessage(), request);
+    }
     @ExceptionHandler(NotEnoughSeatsException.class)
     public ResponseEntity<ApiError> handleNotEnoughSeats(
             NotEnoughSeatsException exception,
