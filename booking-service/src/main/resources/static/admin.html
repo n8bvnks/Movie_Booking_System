@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+</head>
+<body>
+    <!-- who is logged in, with a log out button, filled in by showLoginBar() -->
+    <p id="loginBar"></p>
+
+    <h1>Admin</h1>
+    <p><a href="index.html">Back to movies</a></p>
+
+    <!-- add a showing: sent to POST /api/v1/admin/showings, booking-service passes it on to movie-service -->
+    <h2>Add a showing</h2>
+    <form id="showingForm">
+        <label for="movieTitle">Movie title</label><br>
+        <input type="text" id="movieTitle" required><br><br>
+
+        <label for="genre">Genre</label><br>
+        <input type="text" id="genre" required><br><br>
+
+        <label for="description">Description</label><br>
+        <input type="text" id="description" required size="50"><br><br>
+
+        <label for="runtime">Runtime (minutes)</label><br>
+        <input type="number" id="runtime" min="1" required><br><br>
+
+        <label for="date">Date</label><br>
+        <input type="date" id="date" required><br><br>
+
+        <label for="time">Time (like 12pm or 5pm)</label><br>
+        <input type="text" id="time" required placeholder="e.g. 3pm"><br><br>
+
+        <label for="seats">Seats</label><br>
+        <input type="number" id="seats" min="1" required><br><br>
+
+        <button type="submit">Add showing</button>
+    </form>
+    <p id="addResult"></p>
+
+    <hr>
+
+    <!-- every showing from movie-service, with a button to see who booked it -->
+    <h2>Showings</h2>
+    <div id="showings">Loading showings...</div>
+
+    <!-- bookings for the showing the admin clicked on -->
+    <h2 id="bookingsHeading"></h2>
+    <div id="showingBookings"></div>
+
+    <script src="auth.js"></script>
+    <script>
+
+        // not logged in goes straight to the login page
+        requireLogin();
+        showLoginBar();
+
+        // customers are sent back to the home page
+        // this only hides the page, the server still answers 403 to a customer calling the admin endpoints
+        if (getRole() !== "ADMIN") {
+            window.location.href = "index.html";
+        }
+
+        function formatDate(isoDate) {
+            const [year, month, day] = isoDate.split("-");
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                                 "July", "August", "September", "October", "November", "December"];
+            return parseInt(day) + " " + monthNames[parseInt(month) - 1] + " " + year;
+        }
+
+        // sends the form to POST /api/v1/admin/showings
+        document.getElementById("showingForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const result = document.getElementById("addResult");
+            result.textContent = "Adding showing...";
+
+            // the field names match CreateShowingRequest on the server
+            const showing = {
+                movieTitle: document.getElementById("movieTitle").value.trim(),
+                genre: document.getElementById("genre").value.trim(),
+                description: document.getElementById("description").value.trim(),
+                runtime: Number(document.getElementById("runtime").value),
+                date: document.getElementById("date").value,
+                time: document.getElementById("time").value.trim(),
+                seats: Number(document.getElementById("seats").value)
+            };
+
+            try {
+                const response = await authFetch("/api/v1/admin/showings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(showing)
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    result.textContent = "Added " + data.movieTitle + " on " + formatDate(data.date) + " at " + data.time + ".";
+                    document.getElementById("showingForm").reset();
+                    loadShowings();
+                } else {
+                    // covers a showing that already exists (409), invalid input (400) and movie-service down (503)
+                    result.textContent = "Could not add showing: " + data.message;
+                }
+            } catch (err) {
+                result.textContent = "Something went wrong adding the showing.";
+            }
+        });
+
+        // gets every showing from GET /api/v1/movies and shows them in a table
+        async function loadShowings() {
+            const showingsDiv = document.getElementById("showings");
+
+            try {
+                const response = await authFetch("/api/v1/movies");
+                const showings = await response.json();
+
+                if (!response.ok) {
+                    showingsDiv.textContent = "Could not load showings: " + showings.message;
+                    return;
+                }
+
+                if (showings.length === 0) {
+                    showingsDiv.textContent = "No showings yet.";
+                    return;
+                }
+
+                // textContent is used for the values so a movie title can never be read as html
+                const table = document.createElement("table");
+                table.border = "1";
+                table.cellPadding = "6";
+
+                const header = table.insertRow();
+                for (const heading of ["Movie", "Date", "Time", "Seats left", ""]) {
+                    const cell = document.createElement("th");
+                    cell.textContent = heading;
+                    header.appendChild(cell);
+                }
+
+                for (const showing of showings) {
+                    const row = table.insertRow();
+                    row.insertCell().textContent = showing.movieTitle;
+                    row.insertCell().textContent = formatDate(showing.date);
+                    row.insertCell().textContent = showing.time;
+                    row.insertCell().textContent = showing.seats;
+
+                    const button = document.createElement("button");
+                    button.textContent = "View bookings";
+                    button.addEventListener("click", () => loadShowingBookings(showing));
+                    row.insertCell().appendChild(button);
+                }
+
+                showingsDiv.innerHTML = "";
+                showingsDiv.appendChild(table);
+
+            } catch (err) {
+                showingsDiv.textContent = "Could not load showings.";
+            }
+        }
+
+        // gets the bookings for one showing from GET /api/v1/admin/showings/bookings
+        // a showing has no id, so it is found by title + date + time
+        async function loadShowingBookings(showing) {
+            const heading = document.getElementById("bookingsHeading");
+            const bookingsDiv = document.getElementById("showingBookings");
+
+            heading.textContent = "Bookings for " + showing.movieTitle + " on " +
+                formatDate(showing.date) + " at " + showing.time;
+            bookingsDiv.textContent = "Loading...";
+
+            // URLSearchParams takes care of spaces and special characters in the title
+            const params = new URLSearchParams({
+                movieTitle: showing.movieTitle,
+                date: showing.date,
+                time: showing.time
+            });
+
+            try {
+                const response = await authFetch("/api/v1/admin/showings/bookings?" + params);
+                const bookings = await response.json();
+
+                if (!response.ok) {
+                    bookingsDiv.textContent = "Could not load bookings: " + bookings.message;
+                    return;
+                }
+
+                if (bookings.length === 0) {
+                    bookingsDiv.textContent = "No bookings for this showing yet.";
+                    return;
+                }
+
+                const table = document.createElement("table");
+                table.border = "1";
+                table.cellPadding = "6";
+
+                const header = table.insertRow();
+                for (const text of ["Booking ID", "Customer", "Seats"]) {
+                    const cell = document.createElement("th");
+                    cell.textContent = text;
+                    header.appendChild(cell);
+                }
+
+                for (const booking of bookings) {
+                    const row = table.insertRow();
+                    row.insertCell().textContent = booking.bookingId;
+                    row.insertCell().textContent = booking.name;
+                    row.insertCell().textContent = booking.seats;
+                }
+
+                bookingsDiv.innerHTML = "";
+                bookingsDiv.appendChild(table);
+
+            } catch (err) {
+                bookingsDiv.textContent = "Could not load bookings.";
+            }
+        }
+
+        loadShowings();
+    </script>
+</body>
+</html>
