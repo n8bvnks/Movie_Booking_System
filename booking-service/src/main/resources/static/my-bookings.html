@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Bookings</title>
+</head>
+<body>
+    <!-- who is logged in, with a log out button, filled in by showLoginBar() -->
+    <p id="loginBar"></p>
+
+    <h1>My Bookings</h1>
+    <p>
+        <a href="index.html">Back to movies</a> |
+        <a href="booking-client.html">Book a movie</a>
+    </p>
+
+    <!-- shows the result of the last cancel or change seats action -->
+    <p id="message"></p>
+
+    <div id="bookings">Loading your bookings...</div>
+
+    <script src="auth.js"></script>
+    <script>
+
+        // not logged in goes straight to the login page
+        requireLogin();
+        showLoginBar();
+
+        function formatDate(isoDate) {
+            const [year, month, day] = isoDate.split("-");
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                                 "July", "August", "September", "October", "November", "December"];
+            return parseInt(day) + " " + monthNames[parseInt(month) - 1] + " " + year;
+        }
+
+        // gets the logged in customer's own bookings from GET /api/v1/bookings/mine
+        // the server works out who they are from the token, so the page never sends a name or user id
+        async function loadBookings() {
+            const bookingsDiv = document.getElementById("bookings");
+
+            try {
+                const response = await authFetch("/api/v1/bookings/mine");
+                const bookings = await response.json();
+
+                if (!response.ok) {
+                    bookingsDiv.textContent = "Could not load your bookings: " + bookings.message;
+                    return;
+                }
+
+                if (bookings.length === 0) {
+                    bookingsDiv.textContent = "You have no bookings yet.";
+                    return;
+                }
+
+                // build a table, one row per booking
+                // textContent is used for the values so a movie title can never be read as html
+                const table = document.createElement("table");
+                table.border = "1";
+                table.cellPadding = "6";
+
+                const header = table.insertRow();
+                for (const heading of ["Booking ID", "Movie", "Date", "Time", "Seats", ""]) {
+                    const cell = document.createElement("th");
+                    cell.textContent = heading;
+                    header.appendChild(cell);
+                }
+
+                for (const booking of bookings) {
+                    const row = table.insertRow();
+                    row.insertCell().textContent = booking.bookingId;
+                    row.insertCell().textContent = booking.movieTitle;
+                    row.insertCell().textContent = formatDate(booking.date);
+                    row.insertCell().textContent = booking.timeslot;
+                    row.insertCell().textContent = booking.seats;
+
+                    const actions = row.insertCell();
+
+                    const seatsButton = document.createElement("button");
+                    seatsButton.textContent = "Change seats";
+                    seatsButton.addEventListener("click", () => changeSeats(booking));
+
+                    const cancelButton = document.createElement("button");
+                    cancelButton.textContent = "Cancel booking";
+                    cancelButton.addEventListener("click", () => cancelBooking(booking));
+
+                    actions.appendChild(seatsButton);
+                    actions.appendChild(cancelButton);
+                }
+
+                bookingsDiv.innerHTML = "";
+                bookingsDiv.appendChild(table);
+
+            } catch (err) {
+                bookingsDiv.textContent = "Could not load your bookings.";
+            }
+        }
+
+        // asks how many seats to add or remove, then calls POST /api/v1/bookings/{id}/update
+        // a positive number adds seats, a negative number gives seats back, same as the update page
+        async function changeSeats(booking) {
+            const input = prompt(
+                "You have " + booking.seats + " seat(s) for " + booking.movieTitle + ".\n" +
+                "Enter the change in seats (2 to add 2, -1 to remove 1):");
+
+            // prompt returns null if the user pressed cancel
+            if (input === null) return;
+
+            const seatsChange = Number(input);
+            if (!Number.isInteger(seatsChange) || seatsChange === 0) {
+                document.getElementById("message").textContent = "Please enter a whole number that is not 0.";
+                return;
+            }
+
+            const message = document.getElementById("message");
+            message.textContent = "Updating...";
+
+            try {
+                const response = await authFetch("/api/v1/bookings/" + booking.bookingId + "/update", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ seatsChange: seatsChange })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    message.textContent = "Booking " + booking.bookingId + " now has " + data.seats + " seat(s).";
+                    loadBookings();
+                } else {
+                    // covers not enough seats (409) and taking away more seats than booked (400)
+                    message.textContent = "Update failed: " + data.message;
+                }
+            } catch (err) {
+                message.textContent = "Something went wrong updating your booking.";
+            }
+        }
+
+        // asks to confirm, then calls POST /api/v1/bookings/{id}/delete, the seats go back to movie-service
+        async function cancelBooking(booking) {
+            if (!confirm("Cancel your booking for " + booking.movieTitle + " on " + formatDate(booking.date) + "?")) {
+                return;
+            }
+
+            const message = document.getElementById("message");
+            message.textContent = "Cancelling...";
+
+            try {
+                const response = await authFetch("/api/v1/bookings/" + booking.bookingId + "/delete", {
+                    method: "POST"
+                });
+
+                if (response.ok) {
+                    message.textContent = "Booking " + booking.bookingId + " cancelled. Seats have been released.";
+                    loadBookings();
+                } else {
+                    const data = await response.json();
+                    message.textContent = "Cancel failed: " + data.message;
+                }
+            } catch (err) {
+                message.textContent = "Something went wrong cancelling your booking.";
+            }
+        }
+
+        loadBookings();
+    </script>
+</body>
+</html>
