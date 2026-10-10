@@ -43,10 +43,10 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // keep the token, then go to the landing page
-                    // the admin page will get its own redirect once it is built
+                    // keep the token, then go to the right page for their role
+                    // admins go to the admin page, customers go to the landing page
                     saveLogin(data);
-                    window.location.href = "index.html";
+                    window.location.href = data.role === "ADMIN" ? "admin.html" : "index.html";
                 } else {
                     resultDiv.textContent = "Login failed: " + data.message;
                 }
