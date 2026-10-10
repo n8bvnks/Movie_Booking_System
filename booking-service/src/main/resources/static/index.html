@@ -25,6 +25,7 @@
         <a href="booking-client.html"><button>Book a Movie</button></a>
         <a href="update-booking.html"><button>Update My Booking</button></a>
         <a href="my-bookings.html"><button>My Bookings</button></a>
+        <a id="adminLink" href="admin.html" style="display: none;"><button>Admin</button></a>
     </p>
 
     <div id="movies">Loading movies...</div>
@@ -35,6 +36,11 @@
         // not logged in goes straight to the login page
         requireLogin();
         showLoginBar();
+
+                // only admins see the admin button, customers never do
+        if (getRole() === "ADMIN") {
+            document.getElementById("adminLink").style.display = "inline";
+        }
 
         function formatDate(isoDate) {
     const [year, month, day] = isoDate.split("-");
