@@ -4,6 +4,7 @@ import nz.ac.ara.comp713.booking_service.api.dto.CreateShowingRequest;
 import nz.ac.ara.comp713.booking_service.api.dto.MovieResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -108,7 +109,7 @@ public class MovieClient {
         try {
             return restClient.post()
                     .uri("/api/v1/movies")
-                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .body(request)
                     .retrieve()
                     .body(MovieResponse.class);

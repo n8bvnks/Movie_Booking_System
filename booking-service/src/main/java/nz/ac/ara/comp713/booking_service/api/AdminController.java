@@ -6,9 +6,11 @@ import nz.ac.ara.comp713.booking_service.api.dto.CreateShowingRequest;
 import nz.ac.ara.comp713.booking_service.api.dto.MovieResponse;
 import nz.ac.ara.comp713.booking_service.client.MovieClient;
 import nz.ac.ara.comp713.booking_service.service.BookingService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
 import java.util.List;
 
 //everything under /api/v1/admin is for admins only
@@ -38,5 +40,17 @@ public class AdminController {
     @ResponseStatus(HttpStatus.CREATED)
     public MovieResponse addShowing(@Valid @RequestBody CreateShowingRequest request) {
         return movieClient.createShowing(request);
+    }
+
+    //NEW - GET /api/v1/admin/showings/bookings?movieTitle=...&date=2026-10-15&time=12pm
+    //admin sees every booking for one showing
+    //a showing has no id of its own, so it is identified by title + date + time like everywhere else in the project
+    //errors: 400 missing or badly formatted parameter, 404 no such showing, 503 movie-service down
+    @GetMapping("/showings/bookings")
+    public List<BookingResponse> showingBookings(
+            @RequestParam String movieTitle,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam String time) {
+        return bookingService.listForShowing(movieTitle, date, time);
     }
 }
