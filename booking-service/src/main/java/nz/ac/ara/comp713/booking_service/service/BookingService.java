@@ -151,6 +151,17 @@ public class BookingService {
         return toResponse(saved);
     }
 
+        // NEW - called by the admin delete endpoints after movie-service has deleted a showing
+    // the showing no longer exists, so every booking made for it is cancelled
+    // there are no seats to give back because the showing they belonged to is gone
+    // returns how many bookings were cancelled
+    @Transactional
+    public int cancelBookingsForShowing(String movieTitle, java.time.LocalDate date, String time) {
+        java.util.List<Booking> bookings = repository.findByMovieTitleAndTimeslotAndDate(movieTitle, time, date);
+        repository.deleteAll(bookings);
+        return bookings.size();
+    }
+    
         // deletes a booking, restores its seats to movie-service
     // now returns the booking that was deleted, the controller needs its showing to send the live SeatsChanged event
     @Transactional

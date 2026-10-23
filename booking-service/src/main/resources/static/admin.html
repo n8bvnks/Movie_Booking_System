@@ -43,6 +43,11 @@
 
     <!-- every showing from movie-service, with a button to see who booked it -->
     <h2>Showings</h2>
+    <!-- NEW - connection state of the live updates, and a note when something changes -->
+    <p>Live updates: <span id="liveStatus">connecting</span></p>
+    <p id="liveMessage"></p>
+    <!-- NEW - says what the last delete did -->
+    <p id="deleteResult"></p>
     <div id="showings">Loading showings...</div>
 
     <!-- bookings for the showing the admin clicked on -->
@@ -50,6 +55,7 @@
     <div id="showingBookings"></div>
 
     <script src="auth.js"></script>
+    <script src="live.js"></script>
     <script>
 
         // not logged in goes straight to the login page
@@ -98,7 +104,10 @@
                 if (response.ok) {
                     result.textContent = "Added " + data.movieTitle + " on " + formatDate(data.date) + " at " + data.time + ".";
                     document.getElementById("showingForm").reset();
-                    loadShowings();
+
+                    //NEW - show the new row straight away, the ShowingCreated event for the same showing is then ignored as already applied
+                    upsertShowing(data);
+                    renderShowings();
                 } else {
                     // covers a showing that already exists (409), invalid input (400) and movie-service down (503)
                     result.textContent = "Could not add showing: " + data.message;
@@ -108,54 +117,152 @@
             }
         });
 
-        // gets every showing from GET /api/v1/movies and shows them in a table
+        // NEW - the page keeps the list of showings here, live events change this list and the table is drawn again
+        let showings = [];
+
+        // NEW - the showing whose bookings are open below the table, so it can be refreshed when a booking is made
+        let selectedShowing = null;
+
+        // NEW - a showing is found by title + date + time, replace it if it is already in the list, otherwise add it
+        function upsertShowing(updated) {
+            const index = showings.findIndex(s =>
+                s.movieTitle === updated.movieTitle && s.date === updated.date && s.time === updated.time);
+            if (index >= 0) showings[index] = updated; else showings.push(updated);
+        }
+
+        function sameShowing(a, b) {
+            return a && b && a.movieTitle === b.movieTitle && a.date === b.date && a.time === b.time;
+        }
+
+        // first fill of the table straight from GET /api/v1/movies, so the page still works if the live connection cannot start
         async function loadShowings() {
             const showingsDiv = document.getElementById("showings");
 
             try {
                 const response = await authFetch("/api/v1/movies");
-                const showings = await response.json();
+                const data = await response.json();
 
                 if (!response.ok) {
-                    showingsDiv.textContent = "Could not load showings: " + showings.message;
+                    showingsDiv.textContent = "Could not load showings: " + data.message;
                     return;
                 }
 
-                if (showings.length === 0) {
-                    showingsDiv.textContent = "No showings yet.";
-                    return;
-                }
-
-                // textContent is used for the values so a movie title can never be read as html
-                const table = document.createElement("table");
-                table.border = "1";
-                table.cellPadding = "6";
-
-                const header = table.insertRow();
-                for (const heading of ["Movie", "Date", "Time", "Seats left", ""]) {
-                    const cell = document.createElement("th");
-                    cell.textContent = heading;
-                    header.appendChild(cell);
-                }
-
-                for (const showing of showings) {
-                    const row = table.insertRow();
-                    row.insertCell().textContent = showing.movieTitle;
-                    row.insertCell().textContent = formatDate(showing.date);
-                    row.insertCell().textContent = showing.time;
-                    row.insertCell().textContent = showing.seats;
-
-                    const button = document.createElement("button");
-                    button.textContent = "View bookings";
-                    button.addEventListener("click", () => loadShowingBookings(showing));
-                    row.insertCell().appendChild(button);
-                }
-
-                showingsDiv.innerHTML = "";
-                showingsDiv.appendChild(table);
+                showings = data;
+                renderShowings();
 
             } catch (err) {
                 showingsDiv.textContent = "Could not load showings.";
+            }
+        }
+
+        // NEW - draws the table from the showings array, called again every time a live event arrives
+        function renderShowings() {
+            const showingsDiv = document.getElementById("showings");
+
+            if (showings.length === 0) {
+                showingsDiv.textContent = "No showings yet.";
+                return;
+            }
+
+            // textContent is used for the values so a movie title can never be read as html
+            const table = document.createElement("table");
+            table.border = "1";
+            table.cellPadding = "6";
+
+            const header = table.insertRow();
+            for (const heading of ["Movie", "Date", "Time", "Seats left", ""]) {
+                const cell = document.createElement("th");
+                cell.textContent = heading;
+                header.appendChild(cell);
+            }
+
+            for (const showing of showings) {
+                const row = table.insertRow();
+                row.insertCell().textContent = showing.movieTitle;
+                row.insertCell().textContent = formatDate(showing.date);
+                row.insertCell().textContent = showing.time;
+                row.insertCell().textContent = showing.seats;
+
+                const button = document.createElement("button");
+                button.textContent = "View bookings";
+                button.addEventListener("click", () => loadShowingBookings(showing));
+                const actions = row.insertCell();
+                actions.appendChild(button);
+
+                //NEW - delete just this showing
+                const deleteShowingButton = document.createElement("button");
+                deleteShowingButton.textContent = "Delete showing";
+                deleteShowingButton.addEventListener("click", () => deleteShowing(showing));
+                actions.appendChild(deleteShowingButton);
+
+                //NEW - delete every showing of this movie
+                const deleteMovieButton = document.createElement("button");
+                deleteMovieButton.textContent = "Delete whole movie";
+                deleteMovieButton.addEventListener("click", () => deleteMovie(showing.movieTitle));
+                actions.appendChild(deleteMovieButton);
+            }
+
+            showingsDiv.innerHTML = "";
+            showingsDiv.appendChild(table);
+        }
+
+        //NEW - takes a deleted showing off the list, nothing happens if it is already gone
+        function removeShowing(removed) {
+            showings = showings.filter(s => !sameShowing(s, removed));
+
+            //if its bookings were open below the table they are cancelled too, so clear them
+            if (sameShowing(selectedShowing, removed)) {
+                selectedShowing = null;
+                document.getElementById("bookingsHeading").textContent = "";
+                document.getElementById("showingBookings").textContent = "";
+            }
+        }
+
+        //NEW - sends DELETE /api/v1/admin/showings for one showing, after the admin confirms
+        //movie-service deletes the showing and booking-service cancels the bookings made for it
+        async function deleteShowing(showing) {
+            const label = showing.movieTitle + " on " + formatDate(showing.date) + " at " + showing.time;
+            if (!confirm("Delete " + label + "? Every booking for it will be cancelled.")) return;
+
+            const params = new URLSearchParams({
+                movieTitle: showing.movieTitle,
+                date: showing.date,
+                time: showing.time
+            });
+            await sendDelete("/api/v1/admin/showings?" + params, () => removeShowing(showing));
+        }
+
+        //NEW - sends DELETE /api/v1/admin/movies for a whole movie, after the admin confirms
+        async function deleteMovie(movieTitle) {
+            if (!confirm("Delete ALL showings of " + movieTitle + "? Every booking for them will be cancelled.")) return;
+
+            const params = new URLSearchParams({ movieTitle: movieTitle });
+            await sendDelete("/api/v1/admin/movies?" + params, () => {
+                const gone = showings.filter(s => s.movieTitle === movieTitle);
+                gone.forEach(removeShowing);
+            });
+        }
+
+        //NEW - shared by both deletes, on success the rows come off the table straight away
+        //the ShowingDeleted events for the same showings are then ignored as already applied
+        async function sendDelete(url, removeFromPage) {
+            const result = document.getElementById("deleteResult");
+            result.textContent = "Deleting...";
+
+            try {
+                const response = await authFetch(url, { method: "DELETE" });
+                const data = await response.json();
+
+                if (response.ok) {
+                    result.textContent = data.message;
+                    removeFromPage();
+                    renderShowings();
+                } else {
+                    // covers no such showing (404), not an admin (403) and movie-service down (503)
+                    result.textContent = "Could not delete: " + data.message;
+                }
+            } catch (err) {
+                result.textContent = "Something went wrong deleting.";
             }
         }
 
@@ -164,6 +271,9 @@
         async function loadShowingBookings(showing) {
             const heading = document.getElementById("bookingsHeading");
             const bookingsDiv = document.getElementById("showingBookings");
+
+            //NEW - remember which showing is open, the live updates refresh it when someone books it
+            selectedShowing = showing;
 
             heading.textContent = "Bookings for " + showing.movieTitle + " on " +
                 formatDate(showing.date) + " at " + showing.time;
@@ -217,6 +327,46 @@
         }
 
         loadShowings();
+
+        // NEW - live updates, live.js connects to the websocket, fetches a snapshot and then calls these
+        startLive({
+            // the full current list - on connect and on every reconnect
+            onSnapshot: function (list) {
+                showings = list;
+                renderShowings();
+            },
+            // one change - a new showing, new seats left, or a showing removed
+            onEvent: function (event) {
+                const s = event.showing;
+
+                //NEW - a deleted showing is taken off the table, the other events add it or change its seats
+                if (event.type === "ShowingDeleted") {
+                    removeShowing(s);
+                } else {
+                    upsertShowing(s);
+                }
+                renderShowings();
+
+                if (event.type === "ShowingCreated") {
+                    document.getElementById("liveMessage").textContent =
+                        "New showing added: " + s.movieTitle + " on " + formatDate(s.date) + " at " + s.time;
+                } else if (event.type === "ShowingDeleted") {
+                    document.getElementById("liveMessage").textContent =
+                        "Showing removed: " + s.movieTitle + " on " + formatDate(s.date) + " at " + s.time;
+                } else {
+                    document.getElementById("liveMessage").textContent =
+                        "Seats changed: " + s.movieTitle + " on " + formatDate(s.date) + " at " + s.time + " now has " + s.seats + " seats left";
+
+                    // a booking was made, changed or cancelled for the showing whose bookings are open, so reload that table too
+                    if (sameShowing(selectedShowing, s)) {
+                        loadShowingBookings(selectedShowing);
+                    }
+                }
+            },
+            onStatus: function (text) {
+                document.getElementById("liveStatus").textContent = text;
+            }
+        });
     </script>
 </body>
 </html>

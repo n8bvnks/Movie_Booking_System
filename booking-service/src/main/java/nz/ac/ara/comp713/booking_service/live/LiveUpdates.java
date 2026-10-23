@@ -42,4 +42,14 @@ public class LiveUpdates {
             log.warn("Could not publish SeatsChanged: {}", e.getMessage());
         }
     }
+
+    // ShowingDeleted - the admin deleted a showing, sent with the showing as it was just before it was removed
+    // the pages use it to take that showing off the list
+    public void showingDeleted(MovieResponse showing) {
+        try {
+            liveServer.publish("ShowingDeleted", ShowingData.from(showing));
+        } catch (RuntimeException e) {
+            log.warn("Could not publish ShowingDeleted: {}", e.getMessage());
+        }
+    }
 }
