@@ -3,7 +3,7 @@
 //
 // a page calls startLive({ onSnapshot, onEvent, onStatus })
 //   onSnapshot(showings) - the full list of showings, replace what the page has
-//   onEvent(event)       - one ShowingCreated or SeatsChanged event, event.showing is the showing as it is now
+//   onEvent(event)       - one ShowingCreated, SeatsChanged or ShowingDeleted event, event.showing is the showing as it is now (or as it was, for ShowingDeleted)
 //   onStatus(text)       - optional, shows "connecting", "live", "disconnected..." on the page
 
 // the websocket server runs in booking-service on its own port (live.ws.port in application.properties)
@@ -78,7 +78,7 @@ function startLive(handlers) {
                     ws.close();
                 }
 
-            } else if (message.type === "ShowingCreated" || message.type === "SeatsChanged") {
+            } else if (message.type === "ShowingCreated" || message.type === "SeatsChanged" || message.type === "ShowingDeleted") {
                 if (ready) applyEvent(message);
                 else pending.push(message);
 
