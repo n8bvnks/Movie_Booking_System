@@ -77,6 +77,26 @@ public class MovieCatalogue {
         return toResponse(repository.save(movie));
     }
 
+    //NEW - called by the admin through booking service to delete one showing
+    //if the movie, date and time is not in the database findOrThrow throws movie not found (404)
+    //otherwise the showing is removed, its bookings are cancelled by booking service afterwards
+    public void deleteShowing(String movieTitle, LocalDate date, String time) {
+        Movie movie = findOrThrow(movieTitle, date, time);
+        repository.delete(movie);
+    }
+
+    //NEW - called by the admin through booking service to delete a whole movie, every showing with that title
+    //if no showing has that title throw movie not found (404), otherwise remove them all
+    public void deleteMovie(String movieTitle) {
+        List<Movie> showings = repository.findByMovieTitle(movieTitle);
+
+        if (showings.isEmpty()) {
+            throw new MovieNotFoundException(movieTitle);
+        }
+
+        repository.deleteAll(showings);
+    }
+
     private Movie findOrThrow(String movieTitle, LocalDate date, String time) {
         return repository.findByMovieTitleAndDateAndTime(movieTitle, date, time)
                 .orElseThrow(() -> new MovieNotFoundException(movieTitle, date.toString(), time));

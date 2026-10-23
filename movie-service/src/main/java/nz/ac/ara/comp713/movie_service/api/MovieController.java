@@ -3,6 +3,7 @@ package nz.ac.ara.comp713.movie_service.api;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -70,5 +71,26 @@ public class MovieController {
             @RequestParam int seats) {
 
         return catalogue.incrementSeats(title, date, time, seats);
+    }
+
+    // NEW - DELETE /api/v1/movies/{title}?date=2026-10-15&time=3pm - deletes one showing
+    // called by the booking service when an admin deletes a showing
+    // returns 204 on success and 404 if there is no such showing
+    @DeleteMapping("/{title}")
+    public ResponseEntity<Void> deleteShowing(
+            @PathVariable String title,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam String time) {
+
+        catalogue.deleteShowing(title, date, time);
+        return ResponseEntity.noContent().build();
+    }
+
+    // NEW - DELETE /api/v1/movies/{title}/all - deletes every showing of a movie
+    // returns 204 on success and 404 if no showing has that title
+    @DeleteMapping("/{title}/all")
+    public ResponseEntity<Void> deleteMovie(@PathVariable String title) {
+        catalogue.deleteMovie(title);
+        return ResponseEntity.noContent().build();
     }
 }
