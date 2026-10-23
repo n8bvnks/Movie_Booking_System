@@ -5,6 +5,7 @@ import nz.ac.ara.comp713.booking_service.api.dto.BookingResponse;
 import nz.ac.ara.comp713.booking_service.api.dto.CreateShowingRequest;
 import nz.ac.ara.comp713.booking_service.api.dto.MovieResponse;
 import nz.ac.ara.comp713.booking_service.client.MovieClient;
+import nz.ac.ara.comp713.booking_service.live.LiveUpdates;
 import nz.ac.ara.comp713.booking_service.service.BookingService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -21,10 +22,12 @@ public class AdminController {
 
     private final BookingService bookingService;
     private final MovieClient movieClient; // NEW - used to add showings in movie-service
+    private final LiveUpdates liveUpdates; // NEW - tells open browser tabs about a new showing
 
-    public AdminController(BookingService bookingService, MovieClient movieClient) {
+    public AdminController(BookingService bookingService, MovieClient movieClient, LiveUpdates liveUpdates) {
         this.bookingService = bookingService;
         this.movieClient = movieClient;
+        this.liveUpdates = liveUpdates;
     }
 
     //GET /api/v1/admin/bookings - admin page checks every booking made by every customer
@@ -39,7 +42,12 @@ public class AdminController {
     @PostMapping(path = "/showings", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public MovieResponse addShowing(@Valid @RequestBody CreateShowingRequest request) {
-        return movieClient.createShowing(request);
+        MovieResponse created = movieClient.createShowing(request);
+
+        //NEW - the showing is saved, so send the ShowingCreated event to every open browser tab
+        liveUpdates.showingCreated(created);
+
+        return created;
     }
 
     //NEW - GET /api/v1/admin/showings/bookings?movieTitle=...&date=2026-10-15&time=12pm
