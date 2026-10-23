@@ -151,19 +151,25 @@ public class BookingService {
         return toResponse(saved);
     }
 
-    // deletes a booking, restores its seats to movie-service
+        // deletes a booking, restores its seats to movie-service
+    // now returns the booking that was deleted, the controller needs its showing to send the live SeatsChanged event
     @Transactional
-    public void deleteBooking(long bookingId, AuthUser user) {
+    public BookingResponse deleteBooking(long bookingId, AuthUser user) {
         Booking booking = repository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
         //customers can only delete their own booking, admins can delete any
         checkOwner(booking, user);
 
+        //build the response before the booking is deleted
+        BookingResponse removed = toResponse(booking);
+
         repository.deleteById(bookingId);
 
         movieClient.restoreSeats(
                 booking.getMovieTitle(), booking.getDate(), booking.getTimeslot(), booking.getSeats());
+
+        return removed;
     }
 
     //used by find, update and delete to make sure the logged in person is allowed to touch this booking

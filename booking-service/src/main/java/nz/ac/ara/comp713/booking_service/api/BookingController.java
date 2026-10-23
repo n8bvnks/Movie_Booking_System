@@ -7,6 +7,7 @@ import nz.ac.ara.comp713.booking_service.api.dto.ConfirmBooking;
 import nz.ac.ara.comp713.booking_service.api.dto.MovieResponse;
 import nz.ac.ara.comp713.booking_service.api.dto.UpdateBookingRequest;
 import nz.ac.ara.comp713.booking_service.client.MovieClient;
+import nz.ac.ara.comp713.booking_service.live.LiveUpdates;
 import nz.ac.ara.comp713.booking_service.security.AuthInterceptor;
 import nz.ac.ara.comp713.booking_service.security.AuthUser;
 import nz.ac.ara.comp713.booking_service.service.BookingService;
@@ -30,10 +31,12 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final MovieClient movieClient;
+    private final LiveUpdates liveUpdates; // NEW - tells open browser tabs when the seats left change
 
-    public BookingController(BookingService bookingService, MovieClient movieClient) {
+    public BookingController(BookingService bookingService, MovieClient movieClient, LiveUpdates liveUpdates) {
         this.bookingService = bookingService;
         this.movieClient = movieClient;
+        this.liveUpdates = liveUpdates;
     }
 
     // GET /api/v1/movies - landing page to display the available list of movies from movie client db
@@ -50,6 +53,9 @@ public class BookingController {
             @Valid @RequestBody BookingRequest request,
             @RequestAttribute(AuthInterceptor.USER_ATTRIBUTE) AuthUser user) {
         BookingResponse created = bookingService.createBooking(request, user);
+
+        //NEW - the booking is saved, so send a SeatsChanged event with the seats left for that showing
+        liveUpdates.seatsChanged(created.movieTitle(), created.date(), created.timeslot());
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -86,7 +92,12 @@ public class BookingController {
             @PathVariable long id,
             @RequestBody UpdateBookingRequest request,
             @RequestAttribute(AuthInterceptor.USER_ATTRIBUTE) AuthUser user) {
-        return bookingService.updateBooking(id, request, user);
+        BookingResponse updated = bookingService.updateBooking(id, request, user);
+
+        //NEW - the seat count may have changed, so send a SeatsChanged event
+        liveUpdates.seatsChanged(updated.movieTitle(), updated.date(), updated.timeslot());
+
+        return updated;
     }
 
     // POST /api/v1/bookings/{id}/delete - delete a booking, restores seats
@@ -95,7 +106,12 @@ public class BookingController {
     public ResponseEntity<Void> delete(
             @PathVariable long id,
             @RequestAttribute(AuthInterceptor.USER_ATTRIBUTE) AuthUser user) {
-        bookingService.deleteBooking(id, user);
+        //deleteBooking now returns the booking that was removed, so the controller knows which showing got its seats back
+        BookingResponse removed = bookingService.deleteBooking(id, user);
+
+        //NEW - the seats went back to the showing, so send a SeatsChanged event
+        liveUpdates.seatsChanged(removed.movieTitle(), removed.date(), removed.timeslot());
+
         return ResponseEntity.noContent().build();
     }
 }
