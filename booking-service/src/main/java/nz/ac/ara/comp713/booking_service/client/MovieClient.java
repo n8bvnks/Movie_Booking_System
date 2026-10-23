@@ -124,4 +124,48 @@ public class MovieClient {
             throw new MovieServiceUnavailableException();
         }
     }
+
+    // NEW - called by the admin delete endpoint to delete one showing
+    // forwards to DELETE /api/v1/movies/{title}?date=...&time=... on movie-service, which owns the showings
+    public void deleteShowing(String movieTitle, LocalDate date, String time) {
+        try {
+            restClient.delete()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/v1/movies/{title}")
+                            .queryParam("date", date)
+                            .queryParam("time", time)
+                            .build(movieTitle))
+                    .retrieve()
+                    .toBodilessEntity();
+
+        // 404 from movie-service = no such showing
+        } catch (HttpClientErrorException.NotFound ex) {
+            throw new MovieNotFoundException(movieTitle, date.toString(), time);
+
+        // movie-service is down or unreachable
+        } catch (ResourceAccessException ex) {
+            throw new MovieServiceUnavailableException();
+        }
+    }
+
+    // NEW - called by the admin delete endpoint to delete every showing of a movie
+    // forwards to DELETE /api/v1/movies/{title}/all on movie-service
+    public void deleteMovie(String movieTitle) {
+        try {
+            restClient.delete()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/v1/movies/{title}/all")
+                            .build(movieTitle))
+                    .retrieve()
+                    .toBodilessEntity();
+
+        // 404 from movie-service = no showing has that title
+        } catch (HttpClientErrorException.NotFound ex) {
+            throw new MovieNotFoundException(movieTitle);
+
+        // movie-service is down or unreachable
+        } catch (ResourceAccessException ex) {
+            throw new MovieServiceUnavailableException();
+        }
+    }
 }
