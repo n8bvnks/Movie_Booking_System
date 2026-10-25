@@ -8,6 +8,7 @@ import nz.ac.ara.comp713.booking_service.api.dto.MovieResponse;
 import nz.ac.ara.comp713.booking_service.api.dto.UpdateBookingRequest;
 import nz.ac.ara.comp713.booking_service.client.MovieClient;
 import nz.ac.ara.comp713.booking_service.live.LiveUpdates;
+import nz.ac.ara.comp713.booking_service.messaging.BookingEventPublisher;
 import nz.ac.ara.comp713.booking_service.security.AuthInterceptor;
 import nz.ac.ara.comp713.booking_service.security.AuthUser;
 import nz.ac.ara.comp713.booking_service.service.BookingService;
@@ -32,11 +33,14 @@ public class BookingController {
     private final BookingService bookingService;
     private final MovieClient movieClient;
     private final LiveUpdates liveUpdates; // NEW - tells open browser tabs when the seats left change
+    private final BookingEventPublisher bookingEventPublisher; // NEW - publishes BookingConfirmed to the broker
 
-    public BookingController(BookingService bookingService, MovieClient movieClient, LiveUpdates liveUpdates) {
+    public BookingController(BookingService bookingService, MovieClient movieClient, LiveUpdates liveUpdates,
+                              BookingEventPublisher bookingEventPublisher) {
         this.bookingService = bookingService;
         this.movieClient = movieClient;
         this.liveUpdates = liveUpdates;
+        this.bookingEventPublisher = bookingEventPublisher;
     }
 
     // GET /api/v1/movies - landing page to display the available list of movies from movie client db
@@ -56,6 +60,11 @@ public class BookingController {
 
         //NEW - the booking is saved, so send a SeatsChanged event with the seats left for that showing
         liveUpdates.seatsChanged(created.movieTitle(), created.date(), created.timeslot());
+
+        //NEW - also publish a BookingConfirmed event to the broker, consumed independently by
+        //notification-service (Advanced Path B). A failure here is only logged, never thrown,
+        //same reasoning as the live update above - the booking itself already succeeded.
+        bookingEventPublisher.bookingConfirmed(created, user.id());
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
