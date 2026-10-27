@@ -1,12 +1,16 @@
 # Movie Booking System - Web APP
 
-A distributed movie booking application built with Spring Boot, split into two independently running services that communicate over HTTP.
+A distributed movie booking application built with Spring Boot, split into three independently running services that communicate over HTTP.
 
 # Architecture
 
 - **movie-service** (port 8083) — owns movie data in a single `MovieShowing` table: title, genre, description, runtime, date, time, and remaining seats. 
 
 - **booking-service** (port 8082) — owns booking data in a `Booking` table, and is the only service the client talks to directly. Before saving a booking, it calls movie-service to confirm the showing exists and has enough seats. After saving, it calls movie-service again to decrement the seat count. Updating or deleting a booking calls movie-service to adjusts seats.
+
+- **notification-service** (port 8085) — owns notification data for the android app. Allows users on the adnroid app to view notifications which return their bookings.
+
+- **Websocket** (port 8084) — Receives events when seats change (a user books, or updates their seats), a new showing is created by admin or a showing is deleted by admin. The changes happen live if any user has the relevant web pages open.
 
 Owns `users` table, holds user accoutns and provides distinct roles for each user.  The two roles are admin and user.
 
@@ -67,7 +71,6 @@ Once both all running, open `http://localhost:8082/login.html` in a browser.
 
 ## API endpoints
 
-# API Documentation
 
 ## Booking Service
 
