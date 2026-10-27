@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The backend services run on a developer machine over plain http, so cleartext must be
+     allowed. Fine for coursework on a local network; a real deployment would use https. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
