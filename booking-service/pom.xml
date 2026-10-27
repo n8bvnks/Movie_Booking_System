@@ -64,6 +64,23 @@
 			<version>2.11.0</version>
 		</dependency>
 
+		<!-- ActiveMQ: publishes a BookingConfirmed event after a booking is saved.
+		     spring.activemq.in-memory defaults to true, and with activemq-broker on the
+		     classpath Spring Boot embeds the broker inside this same process - no separate
+		     broker install or Docker container is needed to run or mark this project. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-activemq</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-broker</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-kahadb-store</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
