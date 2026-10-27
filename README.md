@@ -4,7 +4,7 @@ A distributed movie booking application built with Spring Boot, split into three
 
 # GITHUB
 
-- **Repo** - 
+- **Repo** - https://github.com/n8bvnks/Movie_Booking_System
 
 # Architecture
 
