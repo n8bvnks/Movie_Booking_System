@@ -2,6 +2,10 @@
 
 A distributed movie booking application built with Spring Boot, split into three independently running services that communicate over HTTP.
 
+# GITHUB
+
+- **Repo** - 
+
 # Architecture
 
 - **movie-service** (port 8083) — owns movie data in a single `MovieShowing` table: title, genre, description, runtime, date, time, and remaining seats. 
@@ -17,6 +21,7 @@ Owns `users` table, holds user accoutns and provides distinct roles for each use
 - The 3 services use separate databases.
 - The client is a set of plain HTML pages served as static resources from booking-service
 
+- **Checkpoints** - checkpoints are tagged in the github repo. Checkpoints achieved are websocket and messgae broker. Checkpoint attempted is mobile specific feature (partially achieved)
 ## Tech stack
 
 - Java 21, Spring Boot 4.0.8
