@@ -2,9 +2,6 @@
 
 A distributed movie booking application built with Spring Boot, split into three independently running services that communicate over HTTP.
 
-# GITHUB
-
-- **Repo** - https://github.com/n8bvnks/Movie_Booking_System
 
 # Architecture
 
@@ -27,7 +24,7 @@ Owns `users` table, holds user accoutns and provides distinct roles for each use
 - Java 21, Spring Boot 4.0.8
 - Spring Web, Spring Data JPA, Spring Validation, Spring Boot Actuator
 - MySQL (remote, via AWS RDS)
-- Plain HTML/JavaScript (no frontend framework)
+- Plain HTML/JavaScript 
 
 ## GITHUB
 
@@ -39,6 +36,8 @@ All services need the database password, for each service in each terminal windo
 
 
 ## Running
+
+DB password is held by the course lecturer. 
 
 Start movie-service:
 
@@ -64,6 +63,9 @@ $env:DB_PASSWORD = "..."
 ```
 
 Once both all running, open `http://localhost:8082/login.html` in a browser.
+
+Log in with a customer account - username:`alice` and password: `alice123`.
+Log in with an admin account - username:`admin` and password: `admin123`.
 
 ## Client pages
 
@@ -149,7 +151,7 @@ booking dialog says how long to allow for the trip.
 
 The maths lives in `location/Geo.kt` and is covered by unit tests (`GeoTest`).
 
-## Setup on a Mac (first time)
+## Setup (first time)
 
 1. **Install Android Studio** from https://developer.android.com/studio (Apple Silicon or Intel
    download as appropriate), drag it into Applications and open it. Accept the default setup wizard -
@@ -159,12 +161,34 @@ The maths lives in `location/Geo.kt` and is covered by unit tests (`GeoTest`).
    upgrade the Android Gradle Plugin, you can decline.
 3. **Create an emulator**: *Tools > Device Manager > Create Device*, pick a Pixel, and choose a system
    image that says **Google APIs** (or Google Play) - the location feature needs Google Play services.
-4. **Start the backend** (three terminals, from the repo root):
+4. **Start the backend** (three terminals, from the repo root - Movie_Booking_System):
    ```bash
-   cd movie-service && export DB_PASSWORD="..." && ./mvnw spring-boot:run
+
+ # MAC Commands - run from repo root (MOVIE_BOOKING_SYSTEM)
+ 
+   In three different terminals run:
+ 
+   cd movie-service export DB_PASSWORD="..." && ./mvnw spring-boot:run
    cd booking-service && export DB_PASSWORD="..." && ./mvnw spring-boot:run
    cd notification-service && export DB_PASSWORD="..." && ./mvnw spring-boot:run
-   ```
+   
+
+# WINDOWS commands - run from repo root (MOVIE_BOOKING_SYSTEM)
+
+   In three different terminals run:
+ 
+   cd movie-service 
+   $env:DB_PASSWORD = "..."
+   ./mvnw.cmd spring-boot:run
+
+   cd booking-service 
+   $env:DB_PASSWORD = "..."
+   ./mvnw.cmd spring-boot:run
+   
+   cd notification-service 
+   $env:DB_PASSWORD = "..."
+   ./mvnw.cmd spring-boot:run
+
 5. **Run the app**: pick the emulator in the toolbar and press the green Run button.
    Log in with a customer account, e.g. `alice` / `alice123`.
 
